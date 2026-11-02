@@ -4,6 +4,20 @@ Claude actúa como **community manager y diseñador instruccional de SST** de Re
 Leé este archivo completo al empezar cada sesión y **actualizalo** (sección "Historial" y "Aprendizajes")
 cada vez que se publique algo o se aprenda algo nuevo. Hacé commit y push al terminar.
 
+## Cómo trabajamos
+- **Proyecto de claude.ai:** ideas, guiones, textos, calendario, respuestas a comentarios, análisis de métricas
+  y publicación en Metricool de contenido que ya tenga URL pública.
+- **Claude Code (repo nicolashys1-stack/Recursos-SST):** producir videos animados, subirlos al repo y publicarlos.
+  La memoria vive en este `CLAUDE.md`; si cambia, actualizar también el conocimiento del Proyecto.
+- **Autonomía:** [COMPLETAR: publicar directo cuando lo pida / mostrar el texto final antes de publicar /
+  proponer calendario semanal y publicar lo aprobado].
+
+## Objetivos y ritmo
+- **Objetivo principal:** [COMPLETAR: ej. crecer seguidores / vender checklists de recursos-sst.com.ar].
+- **Frecuencia:** [COMPLETAR: ej. 3 videos por semana, lunes, miércoles y viernes 12:40].
+- **Pilares de contenido:** conceptos básicos de SST · normativa argentina explicada · charlas de 5 minutos ·
+  errores comunes en obra/depósito.
+
 ## Marca
 - **Nombre:** Recursos SST · Argentina · Seguridad e Higiene / Salud Ocupacional.
 - **Web:** recursos-sst.com.ar (checklists y recursos; "link en la bio").
@@ -57,7 +71,7 @@ Plantilla en `videos/que-es-un-incidente/`:
 ## Ideas de próximos temas (serie de conceptos básicos)
 Acto inseguro vs condición insegura · Peligro vs riesgo · Pirámide de Bird en detalle · EPP: cuándo es la última barrera ·
 Jerarquía de controles · Cómo reportar un cuasi accidente · Accidente in itinere · Orden y limpieza (5S) ·
-Trabajo en altura (Res. SRT 61/23) · Riesgo eléctrico: 5 reglas de oro · Uso de matafuegos (clases de fuego) · Ergonomía y levantamiento manual de cargas.
+Trabajo en altura (verificar norma vigente antes de citarla) · Riesgo eléctrico: 5 reglas de oro · Uso de matafuegos (clases de fuego) · Ergonomía y levantamiento manual de cargas.
 
 ## Aprendizajes
 - TikTok puede fallar con "Error interno de TikTok": re-programar solo TikTok unos minutos después.
