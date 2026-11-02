@@ -1,0 +1,64 @@
+# Recursos SST — Memoria del community manager
+
+Claude actúa como **community manager y diseñador instruccional de SST** de Recursos SST (Nicolás).
+Leé este archivo completo al empezar cada sesión y **actualizalo** (sección "Historial" y "Aprendizajes")
+cada vez que se publique algo o se aprenda algo nuevo. Hacé commit y push al terminar.
+
+## Marca
+- **Nombre:** Recursos SST · Argentina · Seguridad e Higiene / Salud Ocupacional.
+- **Web:** recursos-sst.com.ar (checklists y recursos; "link en la bio").
+- **Usuario en redes:** @recursos.sst (Instagram, TikTok) · Facebook Page "Recursos SST" · canal de YouTube.
+- **Público:** trabajadores de todos los sectores (depósito, obra, industria), técnicos y licenciados en SyH, supervisores.
+- **Tono:** español rioplatense (voseo: "frená", "avisá", "seguí", "laburo"), directo, cercano, sin vueltas, técnico pero simple.
+  Gancho fuerte en el primer segundo, datos concretos, cierre con CTA.
+- **Identidad visual:** fondo azul marino `#0E1A2B`, amarillo seguridad `#FFC400`, naranja `#FF6B1A`, rojo `#E53935`,
+  verde `#22C55E`; tipografía Inter Display Black; cintas de peligro amarillo/negro; personaje operario con casco amarillo y chaleco naranja.
+- **Rigor:** citar fuente normativa (Ley 19.587, Ley 24.557, Dec. 351/79, Res. SRT, ISO 45001, etc.). No inventar datos ni artículos.
+
+## Metricool (publicación)
+- Marca: "Recursos SST Argentina" · **blogId `7809658`** · zona horaria **America/Buenos_Aires**.
+- Redes conectadas: Instagram, Facebook, TikTok, YouTube.
+- Metricool necesita **URL pública** del video. Método que funciona: commitear el `.mp4` en este repo (es público),
+  pushear y usar `https://raw.githubusercontent.com/nicolashys1-stack/Recursos-SST/<branch>/<ruta>.mp4`.
+  Metricool lo copia a su servidor, después no depende de GitHub.
+- **Una publicación por red** (textos adaptados), con `autoPublish: true`. La fecha no puede ser pasada:
+  para "publicar ya" programar +2–3 min.
+- Campos obligatorios aprendidos: TikTok exige `tiktokData.title`; YouTube exige `title` y `madeForKids`.
+- Instagram y Facebook: `type: "REEL"`, `videoCoverMilliseconds` para portada. YouTube: `type: "short"`, categoría `EDUCATION`.
+- Declaración IA: Instagram `isAiGenerated: true` y TikTok `isAigc: true` para videos generados por Claude;
+  YouTube `isAiGeneratedContent: false` (solo aplica a contenido realista).
+- Después de publicar, verificar con `getScheduledPosts` que el estado sea `PUBLISHED` y reportar los links.
+
+## Fórmula de copy
+- **Gancho** (pregunta o mito que se rompe: "¿Un accidente es mala suerte? No.").
+- Definición/dato con emojis de viñeta (📌 🔴 🟡 ✅ 🔺).
+- **CTA:** 💾 Guardalo para tu charla de 5 minutos · 📤 Compartilo con tu equipo · 👉 Seguí a @recursos.sst ·
+  💬 pregunta para comentarios · link en la bio a recursos-sst.com.ar cuando aplique.
+- Hashtags base: #SeguridadEHigiene #SeguridadLaboral #SST #HigieneYSeguridad #PrevencionDeRiesgos #SaludOcupacional
+  #SeguridadIndustrial #TecnicoEnSeguridad #CharlaDe5Minutos #Argentina + 2–4 del tema. TikTok: + #fyp #parati. YouTube: #Shorts.
+
+## Producción de videos animados
+Plantilla en `videos/que-es-un-incidente/`:
+- `animacion.html`: animación canvas 1080×1920; cada escena es una función `sX(t, lt)`; `render(t)` determinista.
+- `render.js`: Playwright + ffmpeg → mp4 (≈1 min de render para 55 s).
+- `audio.py`: música (112 bpm) + SFX sincronizados con numpy.
+- Mezcla: `ffmpeg ... -af loudnorm=I=-14:TP=-1.5:LRA=11`.
+- Estructura que funciona (≈55 s): gancho (0–4 s) → mini historia con personaje → revelación/sello →
+  definición normativa → comparación → dato/pirámide → qué hacer (checklist) → CTA.
+- Limitaciones del entorno: no hay TTS (voces bloqueadas por red) → videos con texto en pantalla + música, pensados para ver sin sonido.
+  Zonas seguras: contenido clave entre y=220 y y=1500, márgenes 80 px (la UI de TikTok/Reels tapa abajo y a la derecha).
+
+## Historial de publicaciones
+| Fecha | Tema | Redes | Links |
+|---|---|---|---|
+| 2026-11-02 10:54 | ¿Qué es un accidente de trabajo? (Ley 24.557, art. 6) | FB, IG, YT · TikTok falló ("Error interno de TikTok") y se re-publicó 11:04 | [IG](https://www.instagram.com/reel/DfPdqeijaFX/) · [FB](https://facebook.com/reel/2427125157822778) · [YT](https://www.youtube.com/shorts/J9nxIJdoO5M) · [TT](https://www.tiktok.com/@recursos.sst/video/7703575306979790100) |
+| 2026-11-02 12:40 | ¿Qué es un incidente? (ISO 45001, pirámide de Bird) — video animado propio | IG, FB, TT, YT ✅ | [IG](https://www.instagram.com/reel/DfPprJdjhMm/) · [FB](https://facebook.com/reel/1158300287020885) · [TT](https://www.tiktok.com/@recursos.sst/video/7703599566091750674) · [YT](https://www.youtube.com/shorts/VdAD4CnRhx4) |
+
+## Ideas de próximos temas (serie de conceptos básicos)
+Acto inseguro vs condición insegura · Peligro vs riesgo · Pirámide de Bird en detalle · EPP: cuándo es la última barrera ·
+Jerarquía de controles · Cómo reportar un cuasi accidente · Accidente in itinere · Orden y limpieza (5S) ·
+Trabajo en altura (Res. SRT 61/23) · Riesgo eléctrico: 5 reglas de oro · Uso de matafuegos (clases de fuego) · Ergonomía y levantamiento manual de cargas.
+
+## Aprendizajes
+- TikTok puede fallar con "Error interno de TikTok": re-programar solo TikTok unos minutos después.
+- Si el push a GitHub da 403, el usuario tiene que habilitar la app de Claude en el repo (https://github.com/apps/claude/installations/select_target).
