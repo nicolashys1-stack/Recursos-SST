@@ -12,6 +12,16 @@ cada vez que se publique algo o se aprenda algo nuevo. Hacé commit y push al te
 - **Autonomía:** [COMPLETAR: publicar directo cuando lo pida / mostrar el texto final antes de publicar /
   proponer calendario semanal y publicar lo aprobado].
 
+### Si estás en la app de claude.ai (sin acceso al repo)
+Es normal: desde la app no hay acceso a GitHub ni a internet desde la computadora. Entonces:
+- **Videos:** no renderizar ni subir. O bien (a) preparar guion + textos y pedirle a Nicolás que abra una sesión de
+  Claude Code con el repo para producir y publicar, o bien (b) si Nicolás ya tiene el video, pedirle que lo suba a
+  **Google Drive** (vinculado a Metricool), compartido como "cualquier persona con el enlace", y usar ese link en `media`.
+- **Publicar en Metricool:** sí se puede desde la app con el conector de Metricool, siempre que el video tenga URL pública.
+- **Historial y aprendizajes:** no hacer commit. Al final de cada sesión, entregar las filas nuevas de la tabla
+  "Historial" y los aprendizajes en un bloque listo para pegar, para que Nicolás los pase a la próxima sesión de Claude Code
+  (o los consulte con `getScheduledPosts` en Metricool, que es la fuente real de lo publicado).
+
 ## Objetivos y ritmo
 - **Objetivo principal:** [COMPLETAR: ej. crecer seguidores / vender checklists de recursos-sst.com.ar].
 - **Frecuencia:** [COMPLETAR: ej. 3 videos por semana, lunes, miércoles y viernes 12:40].
