@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Qué es un incidente</title>
+<style>
+  @font-face { font-family: "InterX"; src: url("file:///usr/share/fonts/opentype/inter/InterDisplay-Black.otf"); font-weight: 900; }
+  @font-face { font-family: "InterX"; src: url("file:///usr/share/fonts/opentype/inter/InterDisplay-Bold.otf"); font-weight: 700; }
+  @font-face { font-family: "InterX"; src: url("file:///usr/share/fonts/opentype/inter/InterDisplay-Medium.otf"); font-weight: 500; }
+  html, body { margin: 0; background: #0E1A2B; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script>
+// ======================================================================
+//  "¿Qué es un incidente?" — Recursos SST
+//  Animación 9:16 renderizada cuadro a cuadro: render(t) es determinista.
+// ======================================================================
+const W = 1080, H = 1920, DURATION = 55;
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+
+const C = {
+  bg: '#0E1A2B', bg2: '#13243B', navy: '#1B3354',
+  yellow: '#FFC400', orange: '#FF6B1A', red: '#E53935',
+  green: '#22C55E', white: '#FFFFFF', ink: '#0E1A2B',
+  skin: '#F2C29B', gray: '#8DA2BF', steel: '#5B6F8C',
+};
+const F = (w, s) => `${w} ${s}px InterX, "Noto Color Emoji", sans-serif`;
+
+// ---------- utilidades ----------
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const easeOut = k => 1 - Math.pow(1 - k, 3);
+const easeIn = k => k * k * k;
+const easeInOut = k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+const backOut = k => { const c1 = 1.9, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
+const elastic = k => k === 0 ? 0 : k === 1 ? 1 : Math.pow(2, -10 * k) * Math.sin((k * 10 - .75) * (2 * Math.PI / 3)) + 1;
+
+function rr(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+function text(str, x, y, { size = 60, weight = 900, color = C.white, align = 'center', base = 'middle', alpha = 1, stroke = null, sw = 0, shadow = false } = {}) {
+  ctx.save();
+  ctx.globalAlpha *= alpha;
+  ctx.font = F(weight, size); ctx.textAlign = align; ctx.textBaseline = base;
+  if (shadow) { ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 24; ctx.shadowOffsetY = 8; }
+  if (stroke) { ctx.lineJoin = 'round'; ctx.strokeStyle = stroke; ctx.lineWidth = sw; ctx.strokeText(str, x, y); }
+  ctx.fillStyle = color; ctx.fillText(str, x, y);
+  ctx.restore();
+}
+// texto multicolor en una línea: parts = [[str, color], ...]
+function richLine(parts, cx, y, size, weight = 900, alpha = 1) {
+  ctx.save(); ctx.font = F(weight, size);
+  const total = parts.reduce((s, p) => s + ctx.measureText(p[0]).width, 0);
+  let x = cx - total / 2;
+  ctx.globalAlpha *= alpha; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+  for (const [s, col] of parts) { ctx.fillStyle = col; ctx.fillText(s, x, y); x += ctx.measureText(s).width; }
+  ctx.restore();
+}
+function popIn(t, start, dur = .45) { return backOut(prog(t, start, start + dur)); }
+function withT(x, y, s, rot, fn, alpha = 1) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot || 0); ctx.scale(s, s); ctx.globalAlpha *= alpha; fn(); ctx.restore();
+}
+
+// ---------- fondos ----------
+function bgGradient(c1, c2) {
+  const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, c1); g.addColorStop(1, c2);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+}
+function hazardStripe(y, h, offset, alpha = 1) {
+  ctx.save(); ctx.globalAlpha *= alpha;
+  ctx.beginPath(); ctx.rect(0, y, W, h); ctx.clip();
+  ctx.fillStyle = C.yellow; ctx.fillRect(0, y, W, h);
+  ctx.fillStyle = C.ink;
+  for (let x = -200 + (offset % 120); x < W + 200; x += 120) {
+    ctx.beginPath(); ctx.moveTo(x, y + h); ctx.lineTo(x + 60, y + h); ctx.lineTo(x + 60 + h, y); ctx.lineTo(x + h, y); ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
+}
+function dotsGrid(t, alpha = .08) {
+  ctx.save(); ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+  const off = (t * 20) % 60;
+  for (let y = -60 + off; y < H; y += 60) for (let x = 30; x < W; x += 60) { ctx.beginPath(); ctx.arc(x, y, 3, 0, 7); ctx.fill(); }
+  ctx.restore();
+}
+function burst(cx, cy, r1, r2, n, rot, color, alpha = 1) {
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.fillStyle = color; ctx.beginPath();
+  for (let i = 0; i < n * 2; i++) {
+    const a = rot + i * Math.PI / n, r = i % 2 ? r1 : r2;
+    ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+  }
+  ctx.closePath(); ctx.fill(); ctx.restore();
+}
+
+// ---------- personaje: trabajador ----------
+// (x,y) = pies. phase = fase de caminata. mood: 'ok' | 'shock' | 'relief' | 'hurt'
+function worker(x, y, s, { phase = 0, walking = false, mood = 'ok', armsUp = 0, face = 1, bandage = false } = {}) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s * face, s);
+  const sw = walking ? Math.sin(phase) : 0;
+  const bob = walking ? Math.abs(Math.sin(phase)) * 6 : 0;
+  ctx.translate(0, -bob);
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  // piernas
+  const leg = (ang, col) => { ctx.save(); ctx.translate(0, -150); ctx.rotate(ang);
+    ctx.strokeStyle = col; ctx.lineWidth = 34; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 120); ctx.stroke();
+    ctx.fillStyle = '#3B2A1E'; rr(-20, 112, 52, 26, 10); ctx.fill(); ctx.restore(); };
+  leg(-sw * .45, '#24476F'); leg(sw * .45, '#2C5585');
+  // brazo trasero
+  const arm = (ang, col) => { ctx.save(); ctx.translate(0, -300); ctx.rotate(ang);
+    ctx.strokeStyle = col; ctx.lineWidth = 28; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 120); ctx.stroke();
+    ctx.fillStyle = C.skin; ctx.beginPath(); ctx.arc(0, 128, 16, 0, 7); ctx.fill(); ctx.restore(); };
+  const up = armsUp * 2.6;
+  arm(sw * .5 + up, '#D9561A');
+  // torso (chaleco)
+  ctx.fillStyle = C.orange; rr(-48, -325, 96, 190, 30); ctx.fill();
+  ctx.fillStyle = '#E8EEF5'; ctx.fillRect(-48, -255, 96, 14); ctx.fillRect(-48, -205, 96, 14);
+  ctx.fillStyle = '#2C5585'; rr(-48, -160, 96, 22, 8); ctx.fill();
+  // brazo delantero
+  arm(-sw * .5 - up, C.orange);
+  // cabeza
+  ctx.fillStyle = C.skin; ctx.beginPath(); ctx.arc(0, -380, 52, 0, 7); ctx.fill();
+  // ojos y boca
+  ctx.fillStyle = C.ink;
+  if (mood === 'shock') {
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(12, -385, 13, 0, 7); ctx.arc(38, -385, 13, 0, 7); ctx.fill();
+    ctx.fillStyle = C.ink; ctx.beginPath(); ctx.arc(14, -385, 6, 0, 7); ctx.arc(40, -385, 6, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(26, -352, 10, 13, 0, 0, 7); ctx.fill();
+  } else if (mood === 'hurt') {
+    ctx.lineWidth = 5; ctx.strokeStyle = C.ink;
+    ctx.beginPath(); ctx.moveTo(6, -392); ctx.lineTo(20, -382); ctx.moveTo(6, -380); ctx.lineTo(20, -390); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(32, -392); ctx.lineTo(46, -382); ctx.moveTo(32, -380); ctx.lineTo(46, -390); ctx.stroke();
+    ctx.beginPath(); ctx.arc(26, -345, 12, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke();
+  } else {
+    ctx.beginPath(); ctx.arc(16, -385, 6, 0, 7); ctx.arc(40, -385, 6, 0, 7); ctx.fill();
+    ctx.lineWidth = 5; ctx.strokeStyle = C.ink; ctx.beginPath();
+    if (mood === 'relief') ctx.arc(28, -362, 13, .15 * Math.PI, .85 * Math.PI);
+    else ctx.arc(28, -365, 12, .2 * Math.PI, .8 * Math.PI);
+    ctx.stroke();
+  }
+  if (mood === 'relief') { // gota de sudor
+    ctx.fillStyle = '#7CC8FF'; ctx.beginPath(); ctx.moveTo(-30, -430); ctx.quadraticCurveTo(-46, -400, -30, -395); ctx.quadraticCurveTo(-14, -400, -30, -430); ctx.fill();
+  }
+  if (bandage) { ctx.save(); ctx.translate(-14, -362); ctx.rotate(-.5); ctx.fillStyle = '#F5D0A8'; rr(-34, -10, 68, 22, 8); ctx.fill();
+    ctx.fillStyle = '#E0B48A'; ctx.fillRect(-8, -10, 16, 22); ctx.restore(); }
+  // casco
+  ctx.fillStyle = C.yellow;
+  ctx.beginPath(); ctx.arc(0, -400, 58, Math.PI, 0); ctx.closePath(); ctx.fill();
+  rr(-66, -408, 140, 18, 9); ctx.fill();
+  ctx.fillStyle = '#E0A800'; ctx.fillRect(-8, -456, 16, 50);
+  ctx.restore();
+}
+
+// ---------- estantería y caja ----------
+function rack(x, y, wobble) {
+  ctx.save(); ctx.translate(x, y);
+  ctx.fillStyle = C.steel;
+  ctx.fillRect(-170, -820, 22, 820); ctx.fillRect(148, -820, 22, 820);
+  ctx.fillStyle = C.orange;
+  for (const ly of [-800, -540, -280]) ctx.fillRect(-175, ly, 350, 24);
+  // cajas fijas
+  const box = (bx, by, w, h) => { ctx.fillStyle = '#C8894B'; ctx.fillRect(bx, by - h, w, h); ctx.fillStyle = '#B07438'; ctx.fillRect(bx, by - h, w, 14);
+    ctx.fillStyle = '#E6B57A'; ctx.fillRect(bx + w / 2 - 12, by - h, 24, h); };
+  box(-140, -540, 120, 110); box(10, -540, 130, 140);
+  box(-140, -280, 150, 130); box(30, -280, 100, 90);
+  box(-150, 0, 140, 120); box(10, 0, 140, 160);
+  ctx.restore();
+}
+function fallingBox(x, y, rot, s = 1) {
+  withT(x, y, s, rot, () => {
+    ctx.fillStyle = '#C8894B'; ctx.fillRect(-75, -75, 150, 150);
+    ctx.fillStyle = '#B07438'; ctx.fillRect(-75, -75, 150, 18);
+    ctx.fillStyle = '#E6B57A'; ctx.fillRect(-14, -75, 28, 150);
+    ctx.fillStyle = C.red; ctx.font = F(900, 26); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('FRÁGIL', 0, 30);
+  });
+}
+function bubble(x, y, w, h, str, size, alpha, tail = 'left', col = C.white, txtCol = C.ink) {
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.fillStyle = col;
+  rr(x - w / 2, y - h / 2, w, h, 36); ctx.fill();
+  ctx.beginPath();
+  if (tail === 'left') { ctx.moveTo(x - w / 4, y + h / 2 - 2); ctx.lineTo(x - w / 4 - 40, y + h / 2 + 50); ctx.lineTo(x - w / 4 + 40, y + h / 2 - 2); }
+  else { ctx.moveTo(x + w / 4, y + h / 2 - 2); ctx.lineTo(x + w / 4 + 40, y + h / 2 + 50); ctx.lineTo(x + w / 4 - 40, y + h / 2 - 2); }
+  ctx.fill(); ctx.restore();
+  text(str, x, y + 2, { size, color: txtCol, alpha });
+}
+
+// ---------- marca persistente ----------
+function chrome(t) {
+  // barra de progreso
+  ctx.fillStyle = 'rgba(255,255,255,.15)'; ctx.fillRect(0, 0, W, 12);
+  ctx.fillStyle = C.yellow; ctx.fillRect(0, 0, W * (t / DURATION), 12);
+  // marca
+  ctx.save(); ctx.globalAlpha = .9;
+  rr(60, 60, 330, 66, 33); ctx.fillStyle = 'rgba(14,26,43,.75)'; ctx.fill();
+  ctx.fillStyle = C.yellow; ctx.beginPath(); ctx.arc(96, 93, 20, Math.PI, 0); ctx.closePath(); ctx.fill(); ctx.fillRect(70, 90, 52, 7);
+  text('RECURSOS SST', 248, 95, { size: 32, weight: 900, color: C.white });
+  ctx.restore();
+}
+
+// ======================================================================
+//  ESCENAS
+// ======================================================================
+const SC = [
+  { a: 0,  b: 4,  f: sHook },
+  { a: 4,  b: 12, f: sStory },
+  { a: 12, b: 17, f: sStamp },
+  { a: 17, b: 25, f: sDefinition },
+  { a: 25, b: 32, f: sTypes },
+  { a: 32, b: 40.5, f: sPyramid },
+  { a: 40.5, b: 48, f: sSteps },
+  { a: 48, b: 55, f: sCTA },
+];
+
+// 1) GANCHO (0–4 s)
+function sHook(t) {
+  bgGradient('#0E1A2B', '#1B3354'); dotsGrid(t);
+  burst(540, 860, 330, 420, 14, t * .4, 'rgba(255,196,0,.10)');
+  const k1 = popIn(t, .1, .5);
+  withT(540, 700, k1, -.04, () => {
+    text('NADIE SE', 0, -90, { size: 120, color: C.white, shadow: true });
+    text('LASTIMÓ…', 0, 40, { size: 140, color: C.yellow, shadow: true });
+  }, clamp(k1));
+  const k2 = popIn(t, 1.3, .5);
+  withT(540, 1060, k2, .03, () => {
+    ctx.fillStyle = C.red; rr(-430, -90, 860, 180, 40); ctx.fill();
+    text('¿ENTONCES NO', 0, -32, { size: 72, color: C.white });
+    text('PASÓ NADA?', 0, 44, { size: 72, color: C.white });
+  }, clamp(k2));
+  const k3 = prog(t, 2.4, 2.9);
+  text('Error. Mirá esto 👇', 540, 1290, { size: 64, weight: 700, color: C.white, alpha: k3 });
+  // tachado del "no pasó nada"
+  const k4 = easeOut(prog(t, 2.9, 3.4));
+  if (k4 > 0) { ctx.save(); ctx.strokeStyle = C.yellow; ctx.lineWidth = 18; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(150, 1110); ctx.lineTo(150 + 780 * k4, 1010); ctx.stroke(); ctx.restore(); }
+}
+
+// 2) HISTORIA (4–12 s): la caja que casi cae encima
+function sStory(t, lt) {
+  const impact = 5.05;               // tiempo local del impacto
+  let shake = 0;
+  if (lt > impact && lt < impact + .5) shake = (1 - (lt - impact) / .5) * 26;
+  ctx.save(); ctx.translate(Math.sin(lt * 90) * shake, Math.cos(lt * 77) * shake);
+  bgGradient('#16304F', '#0E1A2B');
+  // fondo depósito
+  ctx.fillStyle = 'rgba(255,255,255,.04)'; for (let i = 0; i < 6; i++) ctx.fillRect(40 + i * 180, 380, 120, 900);
+  ctx.fillStyle = '#25405F'; ctx.fillRect(0, 1450, W, 470);
+  hazardStripe(1450, 28, 0, .9);
+  rack(760, 1450);
+  // caja: tambalea y cae
+  const bx0 = 760, by0 = 1450 - 800 - 75;
+  let bx = bx0, by = by0, br = 0;
+  if (lt > 3.6 && lt < 4.4) br = Math.sin((lt - 3.6) * 40) * .06;
+  if (lt >= 4.4) {
+    const k = clamp((lt - 4.4) / (impact - 4.4));
+    bx = lerp(bx0, 520, k); by = lerp(by0, 1450 - 75, easeIn(k)); br = -1.4 * k;
+  }
+  if (lt >= impact) { bx = 520; by = 1450 - 70; br = -.25; }
+  // trabajador
+  const walkEnd = 3.4;
+  const wk = clamp(lt / walkEnd);
+  let wx = lerp(-120, 330, wk), mood = 'ok', armsUp = 0, walking = lt < walkEnd;
+  if (lt > impact - .05) { mood = 'shock'; armsUp = clamp((lt - impact) * 6); wx = 330 - easeOut(clamp((lt - impact) * 4)) * 60; }
+  if (lt > impact + 1.2) { mood = 'relief'; armsUp = clamp(1 - (lt - impact - 1.2) * 4) * .9; }
+  worker(wx, 1450, 1.15, { phase: lt * 9, walking, mood, armsUp });
+  fallingBox(bx, by, br);
+  // polvo y astillas
+  if (lt > impact && lt < impact + 1) {
+    const k = (lt - impact);
+    for (let i = 0; i < 10; i++) {
+      const a = Math.PI + i * Math.PI / 9;
+      ctx.fillStyle = `rgba(230,200,160,${1 - k})`;
+      ctx.beginPath(); ctx.arc(520 + Math.cos(a) * 200 * k, 1440 + Math.sin(a) * 120 * k, 26 * (1 - k) + 6, 0, 7); ctx.fill();
+    }
+  }
+  ctx.restore();
+  // textos
+  text('Un día normal en el depósito…', 540, 300, { size: 58, weight: 700, alpha: prog(lt, .2, .7) * (1 - prog(lt, 3.8, 4.1)) });
+  if (lt > 3.6 && lt < impact) text('😳', 760, 520, { size: 90, alpha: 1 });
+  if (lt > impact - .02) {
+    const k = popIn(lt, impact, .35);
+    withT(540, 330, k, -.08, () => { burst(0, 0, 150, 230, 12, 0, C.yellow); text('¡PUM!', 0, 6, { size: 130, color: C.red, stroke: C.white, sw: 14 }); }, clamp(1 - prog(lt, impact + 1.4, impact + 1.7)));
+  }
+  if (lt > impact + 1.3) {
+    const k = popIn(lt, impact + 1.3, .4);
+    withT(330, 760, k, 0, () => bubble(0, 0, 480, 150, '¡Uf… zafé!', 70, 1, 'left'));
+  }
+  if (lt > 1.0 && lt < 3.9) text('🚶‍♂️ pasa sin mirar arriba', 540, 1620, { size: 46, weight: 700, color: C.gray, alpha: prog(lt, 1, 1.4) });
+}
+
+// 3) SELLO (12–17 s)
+function sStamp(t, lt) {
+  const flash = lt < .3 ? 1 - lt / .3 : 0;
+  bgGradient('#1B0F12', '#0E1A2B');
+  burst(540, 900, 380, 620, 18, lt * .25, 'rgba(229,57,53,.22)');
+  hazardStripe(220, 60, lt * 160); hazardStripe(1580, 60, -lt * 160);
+  text('ESO, que acaba de pasar…', 540, 470, { size: 56, weight: 700, alpha: prog(lt, .1, .5) });
+  const k = clamp(prog(lt, .5, .9));
+  const sc = lerp(3, 1, easeOut(k));
+  withT(540, 880, sc, -.08, () => {
+    ctx.lineWidth = 18; ctx.strokeStyle = C.red; rr(-430, -190, 860, 380, 30); ctx.stroke();
+    ctx.lineWidth = 6; rr(-405, -165, 810, 330, 20); ctx.stroke();
+    text('ES UN', 0, -95, { size: 70, color: C.red });
+    text('INCIDENTE', 0, 40, { size: 150, color: C.red });
+  }, k);
+  if (k >= 1) {
+    // grietas del sello
+    ctx.save(); ctx.strokeStyle = 'rgba(229,57,53,.35)'; ctx.lineWidth = 4;
+    for (let i = 0; i < 8; i++) { const a = i * .8; ctx.beginPath(); ctx.moveTo(540 + Math.cos(a) * 470, 880 + Math.sin(a) * 230); ctx.lineTo(540 + Math.cos(a) * 560, 880 + Math.sin(a) * 300); ctx.stroke(); }
+    ctx.restore();
+  }
+  const k2 = prog(lt, 1.8, 2.3);
+  text('Aunque nadie se haya lastimado.', 540, 1240, { size: 54, weight: 700, color: C.yellow, alpha: k2 });
+  const k3 = prog(lt, 2.8, 3.3);
+  text('Y es una ALERTA que no podés ignorar ⚠️', 540, 1330, { size: 44, weight: 500, color: C.white, alpha: k3 });
+  if (flash) { ctx.fillStyle = `rgba(255,255,255,${flash * .6})`; ctx.fillRect(0, 0, W, H); }
+}
+
+// 4) DEFINICIÓN (17–25 s)
+function sDefinition(t, lt) {
+  bgGradient('#0E1A2B', '#13243B'); dotsGrid(t, .06);
+  const kT = popIn(lt, .05, .45);
+  withT(540, 330, kT, 0, () => {
+    ctx.fillStyle = C.yellow; rr(-400, -70, 800, 140, 70); ctx.fill();
+    text('¿QUÉ ES UN INCIDENTE?', 0, 4, { size: 64, color: C.ink });
+  }, clamp(kT));
+  // tarjeta
+  const kc = easeOut(prog(lt, .4, .9));
+  ctx.save(); ctx.globalAlpha = kc; ctx.translate(0, (1 - kc) * 80);
+  ctx.fillStyle = C.white; rr(80, 470, 920, 720, 44); ctx.fill();
+  ctx.fillStyle = C.orange; rr(80, 470, 22, 720, 11); ctx.fill();
+  ctx.restore();
+  // definición palabra por palabra
+  const lines = [
+    [['Todo ', C.ink], ['suceso', C.orange], [' que', C.ink]],
+    [['ocurre ', C.ink], ['por o durante', C.orange]],
+    [['el trabajo y que', C.ink]],
+    [['PODRÍA', C.red], [' causar o ', C.ink], ['CAUSA', C.red]],
+    [['lesiones o daños', C.ink]],
+    [['a la salud.', C.ink]],
+  ];
+  lines.forEach((ln, i) => {
+    const k = easeOut(prog(lt, 1.0 + i * .45, 1.4 + i * .45));
+    ctx.save(); ctx.translate(0, (1 - k) * 30);
+    richLine(ln, 550, 560 + i * 100, 62, 900, k);
+    ctx.restore();
+  });
+  // subrayado PODRÍA / CAUSA
+  const ku = easeOut(prog(lt, 4.0, 4.6));
+  if (ku > 0) { ctx.fillStyle = 'rgba(229,57,53,.18)'; rr(150, 830, 780 * ku, 70, 14); ctx.fill(); }
+  text('Basado en ISO 45001:2018 (3.35)', 540, 1140, { size: 34, weight: 500, color: C.steel, alpha: prog(lt, 3.6, 4) });
+  // chips
+  const chips = [['🤕 Con lesión', C.red], ['😮‍💨 Sin lesión', C.yellow]];
+  chips.forEach(([s, col], i) => {
+    const k = popIn(lt, 4.8 + i * .4, .4);
+    withT(310 + i * 460, 1330, k, 0, () => {
+      ctx.fillStyle = col; rr(-210, -60, 420, 120, 60); ctx.fill();
+      text(s, 0, 4, { size: 50, color: i ? C.ink : C.white });
+    }, clamp(k));
+  });
+  text('…los dos cuentan.', 540, 1480, { size: 56, weight: 700, color: C.white, alpha: prog(lt, 5.9, 6.3) });
+}
+
+// 5) TIPOS (25–32 s)
+function sTypes(t, lt) {
+  bgGradient('#13243B', '#0E1A2B');
+  text('UN INCIDENTE PUEDE SER…', 540, 300, { size: 62, color: C.white, alpha: prog(lt, 0, .4) });
+  const card = (y, col, titles, sub, mood, bandage, delay, txtCol) => {
+    const k = easeOut(prog(lt, delay, delay + .55));
+    ctx.save(); ctx.translate((1 - k) * (y < 900 ? -W : W), 0); ctx.globalAlpha = k;
+    ctx.fillStyle = col; rr(70, y, 940, 470, 44); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.beginPath(); ctx.arc(260, y + 250, 170, 0, 7); ctx.fill();
+    worker(260, y + 440, .72, { mood, bandage });
+    titles.forEach((ti, j) => text(ti, 690, y + 130 + j * 80 - (titles.length - 1) * 30, { size: 70, color: txtCol }));
+    sub.forEach((su, j) => text(su, 690, y + 290 + j * 58 - (sub.length - 1) * 10, { size: 42, weight: 700, color: txtCol }));
+    ctx.restore();
+  };
+  card(420, C.red, ['ACCIDENTE'], ['Hay lesión o daño', 'a la salud'], 'hurt', true, .4, C.white);
+  card(960, C.yellow, ['CUASI', 'ACCIDENTE'], ['Sin lesión…', 'esta vez 🍀'], 'relief', false, 1.6, C.ink);
+  const k = prog(lt, 3.4, 3.9);
+  ctx.save(); ctx.globalAlpha = k;
+  ctx.fillStyle = C.white; rr(110, 1490, 860, 150, 34); ctx.fill();
+  text('Los dos son INCIDENTES.', 540, 1540, { size: 50, color: C.ink });
+  text('Los dos se REPORTAN.', 540, 1600, { size: 50, color: C.red });
+  ctx.restore();
+}
+
+// 6) PIRÁMIDE DE BIRD (32–40.5 s)
+function sPyramid(t, lt) {
+  bgGradient('#0E1A2B', '#16304F'); dotsGrid(t, .05);
+  text('LA PIRÁMIDE DE BIRD', 540, 290, { size: 66, color: C.yellow, alpha: prog(lt, 0, .4) });
+  text('Por cada lesión grave hay…', 540, 380, { size: 46, weight: 700, alpha: prog(lt, .3, .7) });
+  const cx = 540, top = 480, bottom = 1460, half = 440;
+  const levels = [ // de abajo hacia arriba
+    { n: 600, label: 'incidentes sin lesión', col: C.yellow, tc: C.ink },
+    { n: 30, label: 'daños materiales', col: '#FFA21A', tc: C.ink },
+    { n: 10, label: 'lesiones leves', col: C.orange, tc: C.white },
+    { n: 1, label: 'lesión grave', col: C.red, tc: C.white },
+  ];
+  const lh = (bottom - top) / 4;
+  levels.forEach((L, i) => {
+    const d = .8 + i * .9, k = easeOut(prog(lt, d, d + .5));
+    if (k <= 0) return;
+    const y1 = bottom - i * lh, y0 = y1 - lh + 8;
+    const w1 = half * ((bottom - top) - i * lh) / (bottom - top), w0 = half * ((bottom - top) - (i + 1) * lh) / (bottom - top);
+    ctx.save(); ctx.globalAlpha = k; ctx.translate(0, (1 - k) * 60);
+    ctx.fillStyle = L.col; ctx.beginPath();
+    ctx.moveTo(cx - w1, y1); ctx.lineTo(cx + w1, y1); ctx.lineTo(cx + Math.max(w0, 30), y0); ctx.lineTo(cx - Math.max(w0, 30), y0); ctx.closePath(); ctx.fill();
+    const num = Math.round(L.n * easeOut(prog(lt, d, d + .8)));
+    const ym = (y0 + y1) / 2;
+    if (i < 3) {
+      text(String(num), cx, ym - 34, { size: 88, color: L.tc });
+      text(L.label, cx, ym + 44, { size: 38, weight: 700, color: L.tc });
+    } else {
+      text(String(num), cx, ym + 20, { size: 80, color: L.tc });
+      text(L.label.toUpperCase(), cx, y0 - 40, { size: 40, weight: 900, color: C.red });
+    }
+    ctx.restore();
+  });
+  // flecha a la base
+  const ka = prog(lt, 5.2, 5.7);
+  ctx.save(); ctx.globalAlpha = ka;
+  ctx.fillStyle = C.white; rr(90, 1530, 900, 190, 40); ctx.fill();
+  text('Si atacás la BASE 👇', 540, 1590, { size: 52, color: C.ink });
+  text('evitás la PUNTA ☝️', 540, 1665, { size: 52, color: C.red });
+  ctx.restore();
+  text('Frank E. Bird, 1969', 540, 1780, { size: 30, weight: 500, color: C.gray, alpha: prog(lt, 5.5, 6) });
+}
+
+// 7) QUÉ HACER (40.5–48 s)
+function sSteps(t, lt) {
+  bgGradient('#0E1A2B', '#13243B');
+  hazardStripe(200, 36, lt * 120, .9);
+  text('¿VISTE UN INCIDENTE?', 540, 350, { size: 72, color: C.yellow, alpha: prog(lt, 0, .4) });
+  text('Hacé esto:', 540, 440, { size: 50, weight: 700, alpha: prog(lt, .2, .6) });
+  const steps = [
+    ['🛑', 'Frená la tarea', 'y asegurá la zona'],
+    ['📣', 'Avisá a tu supervisor', 'o al servicio de SyH'],
+    ['📝', 'Reportalo', 'aunque nadie se lastime'],
+    ['🔍', 'Buscá la causa', 'y corregila entre todos'],
+  ];
+  steps.forEach(([ic, a, b], i) => {
+    const d = .7 + i * 1.1, k = easeOut(prog(lt, d, d + .45));
+    if (k <= 0) return;
+    const y = 540 + i * 250;
+    ctx.save(); ctx.globalAlpha = k; ctx.translate((1 - k) * 200, 0);
+    ctx.fillStyle = C.white; rr(80, y, 920, 210, 36); ctx.fill();
+    ctx.fillStyle = C.navy; ctx.beginPath(); ctx.arc(190, y + 105, 70, 0, 7); ctx.fill();
+    text(ic, 190, y + 110, { size: 70 });
+    text(a, 300, y + 78, { size: 54, color: C.ink, align: 'left' });
+    text(b, 300, y + 145, { size: 40, weight: 500, color: C.steel, align: 'left' });
+    // check
+    const kc = popIn(lt, d + .5, .35);
+    withT(930, y + 105, kc, 0, () => { ctx.fillStyle = C.green; ctx.beginPath(); ctx.arc(0, 0, 40, 0, 7); ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 10; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(-17, 2); ctx.lineTo(-4, 15); ctx.lineTo(19, -12); ctx.stroke(); }, clamp(kc));
+    ctx.restore();
+  });
+}
+
+// 8) CTA (48–55 s)
+function sCTA(t, lt) {
+  bgGradient('#1B3354', '#0E1A2B');
+  burst(540, 760, 360, 520, 16, lt * .3, 'rgba(255,196,0,.10)');
+  const k1 = popIn(lt, .1, .5);
+  withT(540, 560, k1, 0, () => {
+    text('Reportar un incidente', 0, -150, { size: 66, color: C.white });
+    text('HOY', 0, -40, { size: 150, color: C.yellow, shadow: true });
+    text('evita un ACCIDENTE', 0, 90, { size: 70, color: C.white });
+    text('MAÑANA.', 0, 190, { size: 110, color: C.red, stroke: C.white, sw: 8 });
+  }, clamp(k1));
+  // botón seguir
+  const k2 = popIn(lt, 1.8, .5), pulse = 1 + Math.sin(lt * 6) * .035 * clamp(lt - 2.3);
+  withT(540, 1040, k2 * pulse, 0, () => {
+    ctx.fillStyle = C.yellow; rr(-400, -85, 800, 170, 85); ctx.fill();
+    text('SEGUÍ a @recursos.sst', 0, 4, { size: 60, color: C.ink });
+  }, clamp(k2));
+  const k3 = prog(lt, 2.8, 3.2), k4 = prog(lt, 3.4, 3.8);
+  text('💾 Guardalo para tu próxima charla de 5′', 540, 1230, { size: 44, weight: 700, alpha: k3 });
+  text('📤 Compartilo con tu equipo', 540, 1310, { size: 44, weight: 700, alpha: k4 });
+  // mano señalando
+  if (lt > 2.4) text('👆', 840 + Math.sin(lt * 6) * 10, 1170, { size: 90, alpha: prog(lt, 2.4, 2.7) });
+  const k5 = prog(lt, 4.4, 4.9);
+  text('Comentá: ¿en tu trabajo se reportan los cuasi accidentes?', 540, 1440, { size: 34, weight: 500, color: C.gray, alpha: k5 });
+}
+
+// ---------- transición entre escenas ----------
+function render(t) {
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1;
+  ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
+  const i = SC.findIndex(s => t >= s.a && t < s.b);
+  const s = SC[i < 0 ? SC.length - 1 : i];
+  s.f(t, t - s.a);
+  // barrido amarillo de transición (0.25 s de cada lado del corte)
+  for (const sc of SC.slice(1)) {
+    const d = t - sc.a;
+    if (d > -.22 && d < .22) {
+      const k = (d + .22) / .44; // 0 → 1
+      const x = lerp(-W * 1.3, W * 1.3, easeInOut(k));
+      ctx.save(); ctx.fillStyle = C.yellow; ctx.beginPath();
+      ctx.moveTo(x - 300, 0); ctx.lineTo(x + W, 0); ctx.lineTo(x + W - 300, H); ctx.lineTo(x - 600, H); ctx.closePath(); ctx.fill(); ctx.restore();
+    }
+  }
+  chrome(t);
+}
+window.render = render;
+window.DURATION = DURATION;
+window.ready = document.fonts.load(F(900, 40)).then(() => document.fonts.load(F(700, 40))).then(() => document.fonts.load(F(500, 40))).then(() => document.fonts.ready);
+</script>
+</body>
+</html>
