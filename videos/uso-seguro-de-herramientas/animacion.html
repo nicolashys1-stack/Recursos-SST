@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Uso seguro de herramientas</title>
+<style>
+  @font-face { font-family: "InterX"; src: url("file:///usr/share/fonts/opentype/inter/InterDisplay-Black.otf"); font-weight: 900; }
+  @font-face { font-family: "InterX"; src: url("file:///usr/share/fonts/opentype/inter/InterDisplay-Bold.otf"); font-weight: 700; }
+  @font-face { font-family: "InterX"; src: url("file:///usr/share/fonts/opentype/inter/InterDisplay-Medium.otf"); font-weight: 500; }
+  html, body { margin: 0; background: #0E1A2B; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script>
+// ======================================================================
+//  "El uso seguro de las herramientas" — Recursos SST
+//  Animación 9:16 renderizada cuadro a cuadro: render(t) es determinista.
+// ======================================================================
+const W = 1080, H = 1920, DURATION = 55;
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+
+const C = {
+  bg: '#0E1A2B', bg2: '#13243B', navy: '#1B3354',
+  yellow: '#FFC400', orange: '#FF6B1A', red: '#E53935',
+  green: '#22C55E', white: '#FFFFFF', ink: '#0E1A2B',
+  skin: '#F2C29B', gray: '#8DA2BF', steel: '#5B6F8C',
+};
+const F = (w, s) => `${w} ${s}px InterX, "Noto Color Emoji", sans-serif`;
+
+// ---------- utilidades ----------
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const easeOut = k => 1 - Math.pow(1 - k, 3);
+const easeIn = k => k * k * k;
+const easeInOut = k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+const backOut = k => { const c1 = 1.9, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
+const elastic = k => k === 0 ? 0 : k === 1 ? 1 : Math.pow(2, -10 * k) * Math.sin((k * 10 - .75) * (2 * Math.PI / 3)) + 1;
+
+function rr(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+function text(str, x, y, { size = 60, weight = 900, color = C.white, align = 'center', base = 'middle', alpha = 1, stroke = null, sw = 0, shadow = false } = {}) {
+  ctx.save();
+  ctx.globalAlpha *= alpha;
+  ctx.font = F(weight, size); ctx.textAlign = align; ctx.textBaseline = base;
+  if (shadow) { ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 24; ctx.shadowOffsetY = 8; }
+  if (stroke) { ctx.lineJoin = 'round'; ctx.strokeStyle = stroke; ctx.lineWidth = sw; ctx.strokeText(str, x, y); }
+  ctx.fillStyle = color; ctx.fillText(str, x, y);
+  ctx.restore();
+}
+// texto multicolor en una línea: parts = [[str, color], ...]
+function richLine(parts, cx, y, size, weight = 900, alpha = 1) {
+  ctx.save(); ctx.font = F(weight, size);
+  const total = parts.reduce((s, p) => s + ctx.measureText(p[0]).width, 0);
+  let x = cx - total / 2;
+  ctx.globalAlpha *= alpha; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+  for (const [s, col] of parts) { ctx.fillStyle = col; ctx.fillText(s, x, y); x += ctx.measureText(s).width; }
+  ctx.restore();
+}
+function popIn(t, start, dur = .45) { return backOut(prog(t, start, start + dur)); }
+function withT(x, y, s, rot, fn, alpha = 1) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot || 0); ctx.scale(s, s); ctx.globalAlpha *= alpha; fn(); ctx.restore();
+}
+
+// ---------- fondos ----------
+function bgGradient(c1, c2) {
+  const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, c1); g.addColorStop(1, c2);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+}
+function hazardStripe(y, h, offset, alpha = 1) {
+  ctx.save(); ctx.globalAlpha *= alpha;
+  ctx.beginPath(); ctx.rect(0, y, W, h); ctx.clip();
+  ctx.fillStyle = C.yellow; ctx.fillRect(0, y, W, h);
+  ctx.fillStyle = C.ink;
+  for (let x = -200 + (offset % 120); x < W + 200; x += 120) {
+    ctx.beginPath(); ctx.moveTo(x, y + h); ctx.lineTo(x + 60, y + h); ctx.lineTo(x + 60 + h, y); ctx.lineTo(x + h, y); ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
+}
+function dotsGrid(t, alpha = .08) {
+  ctx.save(); ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+  const off = (t * 20) % 60;
+  for (let y = -60 + off; y < H; y += 60) for (let x = 30; x < W; x += 60) { ctx.beginPath(); ctx.arc(x, y, 3, 0, 7); ctx.fill(); }
+  ctx.restore();
+}
+function burst(cx, cy, r1, r2, n, rot, color, alpha = 1) {
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.fillStyle = color; ctx.beginPath();
+  for (let i = 0; i < n * 2; i++) {
+    const a = rot + i * Math.PI / n, r = i % 2 ? r1 : r2;
+    ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+  }
+  ctx.closePath(); ctx.fill(); ctx.restore();
+}
+
+// ---------- personaje: trabajador ----------
+// (x,y) = pies. phase = fase de caminata. mood: 'ok' | 'shock' | 'relief' | 'hurt'
+function worker(x, y, s, { phase = 0, walking = false, mood = 'ok', armsUp = 0, face = 1, bandage = false, frontAng = null, hammer = 0, headRot = 0 } = {}) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s * face, s);
+  const sw = walking ? Math.sin(phase) : 0;
+  const bob = walking ? Math.abs(Math.sin(phase)) * 6 : 0;
+  ctx.translate(0, -bob);
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  // piernas
+  const leg = (ang, col) => { ctx.save(); ctx.translate(0, -150); ctx.rotate(ang);
+    ctx.strokeStyle = col; ctx.lineWidth = 34; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 120); ctx.stroke();
+    ctx.fillStyle = '#3B2A1E'; rr(-20, 112, 52, 26, 10); ctx.fill(); ctx.restore(); };
+  leg(-sw * .45, '#24476F'); leg(sw * .45, '#2C5585');
+  // brazo trasero
+  const arm = (ang, col, tool = 0) => { ctx.save(); ctx.translate(0, -300); ctx.rotate(ang);
+    ctx.strokeStyle = col; ctx.lineWidth = 28; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 120); ctx.stroke();
+    if (tool) { // martillo: mango a lo largo del brazo, cabeza perpendicular (tool 2 = solo el mango)
+      ctx.fillStyle = '#A0672F'; rr(-9, 105, 18, 165, 8); ctx.fill();
+      if (tool === 1) { ctx.save(); ctx.translate(0, 268); ctx.rotate(headRot);
+        ctx.fillStyle = '#9AA7B8'; rr(-62, -22, 104, 44, 8); ctx.fill();
+        ctx.fillStyle = '#6E7D92'; rr(-62, -22, 26, 44, 6); ctx.fill(); ctx.restore(); }
+    }
+    ctx.fillStyle = C.skin; ctx.beginPath(); ctx.arc(0, 128, 16, 0, 7); ctx.fill(); ctx.restore(); };
+  const up = armsUp * 2.6;
+  arm(sw * .5 + up, '#D9561A');
+  // torso (chaleco)
+  ctx.fillStyle = C.orange; rr(-48, -325, 96, 190, 30); ctx.fill();
+  ctx.fillStyle = '#E8EEF5'; ctx.fillRect(-48, -255, 96, 14); ctx.fillRect(-48, -205, 96, 14);
+  ctx.fillStyle = '#2C5585'; rr(-48, -160, 96, 22, 8); ctx.fill();
+  // brazo delantero
+  arm(frontAng !== null ? frontAng : -sw * .5 - up, C.orange, hammer);
+  // cabeza
+  ctx.fillStyle = C.skin; ctx.beginPath(); ctx.arc(0, -380, 52, 0, 7); ctx.fill();
+  // ojos y boca
+  ctx.fillStyle = C.ink;
+  if (mood === 'shock') {
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(12, -385, 13, 0, 7); ctx.arc(38, -385, 13, 0, 7); ctx.fill();
+    ctx.fillStyle = C.ink; ctx.beginPath(); ctx.arc(14, -385, 6, 0, 7); ctx.arc(40, -385, 6, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(26, -352, 10, 13, 0, 0, 7); ctx.fill();
+  } else if (mood === 'hurt') {
+    ctx.lineWidth = 5; ctx.strokeStyle = C.ink;
+    ctx.beginPath(); ctx.moveTo(6, -392); ctx.lineTo(20, -382); ctx.moveTo(6, -380); ctx.lineTo(20, -390); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(32, -392); ctx.lineTo(46, -382); ctx.moveTo(32, -380); ctx.lineTo(46, -390); ctx.stroke();
+    ctx.beginPath(); ctx.arc(26, -345, 12, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke();
+  } else {
+    ctx.beginPath(); ctx.arc(16, -385, 6, 0, 7); ctx.arc(40, -385, 6, 0, 7); ctx.fill();
+    ctx.lineWidth = 5; ctx.strokeStyle = C.ink; ctx.beginPath();
+    if (mood === 'relief') ctx.arc(28, -362, 13, .15 * Math.PI, .85 * Math.PI);
+    else ctx.arc(28, -365, 12, .2 * Math.PI, .8 * Math.PI);
+    ctx.stroke();
+  }
+  if (mood === 'relief') { // gota de sudor
+    ctx.fillStyle = '#7CC8FF'; ctx.beginPath(); ctx.moveTo(-30, -430); ctx.quadraticCurveTo(-46, -400, -30, -395); ctx.quadraticCurveTo(-14, -400, -30, -430); ctx.fill();
+  }
+  if (bandage) { ctx.save(); ctx.translate(-14, -362); ctx.rotate(-.5); ctx.fillStyle = '#F5D0A8'; rr(-34, -10, 68, 22, 8); ctx.fill();
+    ctx.fillStyle = '#E0B48A'; ctx.fillRect(-8, -10, 16, 22); ctx.restore(); }
+  // casco
+  ctx.fillStyle = C.yellow;
+  ctx.beginPath(); ctx.arc(0, -400, 58, Math.PI, 0); ctx.closePath(); ctx.fill();
+  rr(-66, -408, 140, 18, 9); ctx.fill();
+  ctx.fillStyle = '#E0A800'; ctx.fillRect(-8, -456, 16, 50);
+  ctx.restore();
+}
+
+// ---------- taller: banco de trabajo, tablero de herramientas ----------
+function pegboard() {
+  ctx.save();
+  ctx.fillStyle = '#1F3A5C'; rr(90, 520, 900, 560, 24); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.07)';
+  for (let y = 560; y < 1060; y += 50) for (let x = 130; x < 970; x += 50) { ctx.beginPath(); ctx.arc(x, y, 6, 0, 7); ctx.fill(); }
+  // siluetas de herramientas colgadas
+  ctx.fillStyle = 'rgba(141,162,191,.35)';
+  rr(170, 600, 22, 200, 8); ctx.fill(); rr(140, 590, 82, 40, 8); ctx.fill();            // martillo
+  rr(300, 600, 18, 230, 6); ctx.fill(); rr(292, 790, 34, 70, 10); ctx.fill();          // destornillador
+  ctx.beginPath(); ctx.arc(450, 640, 38, 0, 7); ctx.fill(); rr(440, 650, 22, 200, 8); ctx.fill(); // llave
+  rr(820, 610, 24, 220, 8); ctx.fill(); rr(860, 610, 24, 220, 8); ctx.fill();          // pinza
+  ctx.restore();
+}
+function bench(nailK) {
+  ctx.save();
+  ctx.fillStyle = '#6B4A2B'; ctx.fillRect(520, 1240, 26, 210); ctx.fillRect(930, 1240, 26, 210);
+  ctx.fillStyle = '#8A5E36'; rr(490, 1205, 500, 44, 10); ctx.fill();
+  ctx.fillStyle = '#C8894B'; rr(560, 1160, 340, 46, 8); ctx.fill();                  // tabla
+  ctx.fillStyle = '#B07438'; ctx.fillRect(560, 1160, 340, 10);
+  // clavo que se va hundiendo
+  const h = lerp(60, 8, nailK);
+  ctx.fillStyle = '#C9D2DE'; ctx.fillRect(637, 1160 - h, 8, h); rr(626, 1160 - h - 8, 30, 10, 4); ctx.fill();
+  ctx.restore();
+}
+function hammerHead(x, y, s, rot) {
+  withT(x, y, s, rot, () => {
+    ctx.fillStyle = '#9AA7B8'; rr(-62, -22, 104, 44, 8); ctx.fill();
+    ctx.fillStyle = '#6E7D92'; rr(-62, -22, 26, 44, 6); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.35)'; rr(-30, -16, 60, 8, 4); ctx.fill();
+  });
+}
+// vidrio roto (pantalla) en (cx,cy)
+function cracks(cx, cy, k, alpha = 1) {
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineCap = 'round';
+  const n = 11;
+  for (let i = 0; i < n; i++) {
+    const a = i * 2 * Math.PI / n + Math.sin(i * 7.3) * .25, L = (220 + 160 * Math.abs(Math.sin(i * 3.1))) * k;
+    ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(cx, cy);
+    let px = cx, py = cy;
+    for (let j = 1; j <= 4; j++) { const r = L * j / 4, aj = a + Math.sin(i * 5 + j * 2.7) * .12; px = cx + Math.cos(aj) * r; py = cy + Math.sin(aj) * r; ctx.lineTo(px, py); }
+    ctx.stroke();
+  }
+  ctx.lineWidth = 4;
+  for (const R of [70, 150]) { ctx.beginPath();
+    for (let i = 0; i <= n; i++) { const a = i * 2 * Math.PI / n + Math.sin(i * 7.3) * .25, r = R * k * (1 + Math.sin(i * 4.1) * .15);
+      i ? ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r) : ctx.moveTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r); }
+    ctx.stroke(); }
+  ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.beginPath(); ctx.arc(cx, cy, 40 * k, 0, 7); ctx.fill();
+  ctx.restore();
+}
+function bubble(x, y, w, h, str, size, alpha, tail = 'left', col = C.white, txtCol = C.ink) {
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.fillStyle = col;
+  rr(x - w / 2, y - h / 2, w, h, 36); ctx.fill();
+  ctx.beginPath();
+  if (tail === 'left') { ctx.moveTo(x - w / 4, y + h / 2 - 2); ctx.lineTo(x - w / 4 - 40, y + h / 2 + 50); ctx.lineTo(x - w / 4 + 40, y + h / 2 - 2); }
+  else { ctx.moveTo(x + w / 4, y + h / 2 - 2); ctx.lineTo(x + w / 4 + 40, y + h / 2 + 50); ctx.lineTo(x + w / 4 - 40, y + h / 2 - 2); }
+  ctx.fill(); ctx.restore();
+  text(str, x, y + 2, { size, color: txtCol, alpha });
+}
+function check(x, y, s, alpha = 1, col = C.green) {
+  withT(x, y, s, 0, () => { ctx.fillStyle = col; ctx.beginPath(); ctx.arc(0, 0, 40, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 10; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(-17, 2); ctx.lineTo(-4, 15); ctx.lineTo(19, -12); ctx.stroke(); }, alpha);
+}
+function cross(x, y, s, alpha = 1) {
+  withT(x, y, s, 0, () => { ctx.fillStyle = C.red; ctx.beginPath(); ctx.arc(0, 0, 40, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 10; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(-14, -14); ctx.lineTo(14, 14); ctx.moveTo(14, -14); ctx.lineTo(-14, 14); ctx.stroke(); }, alpha);
+}
+
+// ---------- marca persistente ----------
+function chrome(t) {
+  // barra de progreso
+  ctx.fillStyle = 'rgba(255,255,255,.15)'; ctx.fillRect(0, 0, W, 12);
+  ctx.fillStyle = C.yellow; ctx.fillRect(0, 0, W * (t / DURATION), 12);
+  // marca
+  ctx.save(); ctx.globalAlpha = .9;
+  rr(60, 60, 330, 66, 33); ctx.fillStyle = 'rgba(14,26,43,.75)'; ctx.fill();
+  ctx.fillStyle = C.yellow; ctx.beginPath(); ctx.arc(96, 93, 20, Math.PI, 0); ctx.closePath(); ctx.fill(); ctx.fillRect(70, 90, 52, 7);
+  text('RECURSOS SST', 248, 95, { size: 32, weight: 900, color: C.white });
+  ctx.restore();
+}
+
+// ======================================================================
+//  ESCENAS
+// ======================================================================
+const SC = [
+  { a: 0,  b: 4,  f: sHook },
+  { a: 4,  b: 12, f: sStory },
+  { a: 12, b: 17, f: sStamp },
+  { a: 17, b: 25, f: sNorma },
+  { a: 25, b: 32, f: sCompare },
+  { a: 32, b: 40.5, f: sInspect },
+  { a: 40.5, b: 48, f: sSteps },
+  { a: 48, b: 55, f: sCTA },
+];
+
+// 1) GANCHO (0–4 s)
+function sHook(t) {
+  bgGradient('#0E1A2B', '#1B3354'); dotsGrid(t);
+  burst(540, 860, 330, 420, 14, t * .4, 'rgba(255,196,0,.10)');
+  const k1 = popIn(t, .1, .5);
+  withT(540, 700, k1, -.04, () => {
+    text('ES SOLO UN', 0, -90, { size: 120, color: C.white, shadow: true });
+    text('MARTILLO…', 0, 40, { size: 140, color: C.yellow, shadow: true });
+  }, clamp(k1));
+  const k2 = popIn(t, 1.3, .5);
+  withT(540, 1060, k2, .03, () => {
+    ctx.fillStyle = C.red; rr(-430, -90, 860, 180, 40); ctx.fill();
+    text('¿QUÉ PODRÍA', 0, -32, { size: 72, color: C.white });
+    text('SALIR MAL?', 0, 44, { size: 72, color: C.white });
+  }, clamp(k2));
+  const k3 = prog(t, 2.4, 2.9);
+  text('Mucho. Mirá esto 👇', 540, 1290, { size: 64, weight: 700, color: C.white, alpha: k3 });
+  const k4 = easeOut(prog(t, 2.9, 3.4));
+  if (k4 > 0) { ctx.save(); ctx.strokeStyle = C.yellow; ctx.lineWidth = 18; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(150, 1110); ctx.lineTo(150 + 780 * k4, 1010); ctx.stroke(); ctx.restore(); }
+}
+
+// 2) HISTORIA (4–12 s): martillo con el mango flojo
+const STRIKE = -1.82, RAISED = -2.9, WX = 330, WS = 1.15;
+function swingAng(lt) {
+  if (lt < .2) return STRIKE;
+  if (lt < 3.4) { const p = ((lt - .2) % .8) / .8;
+    return p < .7 ? lerp(STRIKE, RAISED, easeOut(p / .7)) : lerp(RAISED, STRIKE, easeIn((p - .7) / .3)); }
+  if (lt < 4.25) return lerp(STRIKE, -3.15, easeOut(prog(lt, 3.4, 4.25)));
+  if (lt < 4.6) return lerp(-3.15, -1.5, easeIn(prog(lt, 4.25, 4.6)));
+  return -1.5;
+}
+const headAt = a => ({ x: WX + WS * (-268 * Math.sin(a)), y: 1450 + WS * (-300 + 268 * Math.cos(a)) });
+function sStory(t, lt) {
+  const impact = 5.05, detach = 4.45;
+  let shake = 0;
+  if (lt > impact && lt < impact + .5) shake = (1 - (lt - impact) / .5) * 30;
+  ctx.save(); ctx.translate(Math.sin(lt * 90) * shake, Math.cos(lt * 77) * shake);
+  bgGradient('#16304F', '#0E1A2B');
+  pegboard();
+  ctx.fillStyle = '#25405F'; ctx.fillRect(0, 1450, W, 470);
+  hazardStripe(1450, 28, 0, .9);
+  const strikes = clamp(Math.floor((lt - .2) / .8 + .0001), 0, 4);
+  bench(strikes / 5);
+  // trabajador martillando
+  let mood = 'ok', armsUp = 0, frontAng = swingAng(lt), hammer = lt < detach ? 1 : 2;
+  const loose = lt > .2 && lt < detach ? Math.sin(lt * 26) * .16 : 0;
+  if (lt > impact - .05) { mood = 'shock'; frontAng = null; armsUp = clamp((lt - impact) * 6); }
+  if (lt > impact + 1.2) { mood = 'relief'; armsUp = clamp(1 - (lt - impact - 1.2) * 4) * .9; }
+  worker(WX, 1450, WS, { mood, armsUp, frontAng, hammer, headRot: loose });
+  // chispazo en cada golpe
+  for (let i = 0; i < 4; i++) { const ts = 1.0 + i * .8, d = lt - ts;
+    if (d > 0 && d < .18) burst(645, 1100, 18, 55, 8, i, `rgba(255,196,0,${1 - d / .18})`); }
+  // cabeza que sale volando hacia la cámara
+  if (lt >= detach && lt < impact) {
+    const a0 = swingAng(detach), p0 = headAt(a0), k = prog(lt, detach, impact);
+    const x = lerp(p0.x, 700, easeIn(k)), y = lerp(p0.y, 600, k) - Math.sin(k * Math.PI) * 120;
+    hammerHead(x, y, lerp(WS, 7, easeIn(k)), a0 + k * 7);
+  }
+  if (lt >= impact && lt < impact + .45) {
+    const d = lt - impact; hammerHead(700, 600 + 2600 * d * d, 7 * (1 - d), .4 + d * 3, 1);
+  }
+  ctx.restore();
+  if (lt >= impact) cracks(700, 600, easeOut(prog(lt, impact, impact + .12)));
+  // textos
+  text('Un día normal en el taller…', 540, 300, { size: 58, weight: 700, alpha: prog(lt, .2, .7) * (1 - prog(lt, 3.8, 4.1)) });
+  if (lt > 1.0 && lt < 4.2) text('🔨 el mango está flojo… y sigue igual', 540, 1620, { size: 44, weight: 700, color: C.gray, alpha: prog(lt, 1, 1.4) });
+  if (lt > 3.5 && lt < detach) text('😬', 560, 760, { size: 90 });
+  if (lt > impact - .02) {
+    const k = popIn(lt, impact, .35);
+    withT(540, 330, k, -.08, () => { burst(0, 0, 150, 230, 12, 0, C.yellow); text('¡CRACK!', 0, 6, { size: 120, color: C.red, stroke: C.white, sw: 14 }); }, clamp(1 - prog(lt, impact + 1.4, impact + 1.7)));
+  }
+  if (lt > impact + 1.3) {
+    const k = popIn(lt, impact + 1.3, .4);
+    withT(440, 800, k, 0, () => bubble(0, 0, 660, 140, '¡Casi me da en la cara!', 52, 1, 'left'));
+  }
+}
+
+// 3) SELLO (12–17 s)
+function sStamp(t, lt) {
+  const flash = lt < .3 ? 1 - lt / .3 : 0;
+  bgGradient('#1B0F12', '#0E1A2B');
+  burst(540, 900, 380, 620, 18, lt * .25, 'rgba(229,57,53,.22)');
+  hazardStripe(220, 60, lt * 160); hazardStripe(1580, 60, -lt * 160);
+  text('NO fue mala suerte…', 540, 470, { size: 60, weight: 700, alpha: prog(lt, .1, .5) });
+  const k = clamp(prog(lt, .5, .9));
+  const sc = lerp(3, 1, easeOut(k));
+  withT(540, 880, sc, -.08, () => {
+    ctx.lineWidth = 18; ctx.strokeStyle = C.red; rr(-450, -200, 900, 400, 30); ctx.stroke();
+    ctx.lineWidth = 6; rr(-425, -175, 850, 350, 20); ctx.stroke();
+    text('HERRAMIENTA', 0, -60, { size: 118, color: C.red });
+    text('EN MAL ESTADO', 0, 80, { size: 96, color: C.red });
+  }, k);
+  if (k >= 1) {
+    ctx.save(); ctx.strokeStyle = 'rgba(229,57,53,.35)'; ctx.lineWidth = 4;
+    for (let i = 0; i < 8; i++) { const a = i * .8; ctx.beginPath(); ctx.moveTo(540 + Math.cos(a) * 490, 880 + Math.sin(a) * 240); ctx.lineTo(540 + Math.cos(a) * 570, 880 + Math.sin(a) * 310); ctx.stroke(); }
+    ctx.restore();
+  }
+  text('Era un peligro anunciado.', 540, 1250, { size: 56, weight: 700, color: C.yellow, alpha: prog(lt, 1.8, 2.3) });
+  text('Y se evitaba revisándola antes ⚠️', 540, 1340, { size: 46, weight: 500, color: C.white, alpha: prog(lt, 2.8, 3.3) });
+  if (flash) { ctx.fillStyle = `rgba(255,255,255,${flash * .6})`; ctx.fillRect(0, 0, W, H); }
+}
+
+// 4) NORMA (17–25 s)
+function sNorma(t, lt) {
+  bgGradient('#0E1A2B', '#13243B'); dotsGrid(t, .06);
+  const kT = popIn(lt, .05, .45);
+  withT(540, 330, kT, 0, () => {
+    ctx.fillStyle = C.yellow; rr(-400, -70, 800, 140, 70); ctx.fill();
+    text('¿QUÉ DICE LA NORMA?', 0, 4, { size: 64, color: C.ink });
+  }, clamp(kT));
+  const kc = easeOut(prog(lt, .4, .9));
+  ctx.save(); ctx.globalAlpha = kc; ctx.translate(0, (1 - kc) * 80);
+  ctx.fillStyle = C.white; rr(80, 470, 920, 640, 44); ctx.fill();
+  ctx.fillStyle = C.orange; rr(80, 470, 22, 640, 11); ctx.fill();
+  ctx.restore();
+  const lines = [
+    [['Las herramientas deben', C.ink]],
+    [['ser ', C.ink], ['ADECUADAS', C.orange], [' a la', C.ink]],
+    [['tarea y estar ', C.ink], ['SIN', C.red]],
+    [['DEFECTOS', C.red], [' ni desgastes', C.ink]],
+    [['que las hagan peligrosas.', C.ink]],
+  ];
+  lines.forEach((ln, i) => {
+    const k = easeOut(prog(lt, 1.0 + i * .45, 1.4 + i * .45));
+    ctx.save(); ctx.translate(0, (1 - k) * 30);
+    richLine(ln, 550, 570 + i * 100, 60, 900, k);
+    ctx.restore();
+  });
+  const ku = easeOut(prog(lt, 3.6, 4.2));
+  if (ku > 0) { ctx.fillStyle = 'rgba(229,57,53,.16)'; rr(150, 735, 780 * ku, 170, 18); ctx.fill(); }
+  text('Basado en Dec. 351/79, Cap. 15 · Ley 19.587', 540, 1060, { size: 32, weight: 500, color: C.steel, alpha: prog(lt, 3.4, 3.8) });
+  const rows = [['🏭  La empresa: las da y las mantiene', C.yellow, C.ink], ['🦺  Vos: las usás bien, las cuidás y avisás', C.orange, C.white]];
+  rows.forEach(([s, col, tc], i) => {
+    const k = popIn(lt, 4.8 + i * .4, .4);
+    withT(540, 1250 + i * 150, k, 0, () => {
+      ctx.fillStyle = col; rr(-450, -58, 900, 116, 58); ctx.fill();
+      text(s, 0, 4, { size: 44, color: tc });
+    }, clamp(k));
+  });
+}
+
+// 5) ASÍ NO / ASÍ SÍ (25–32 s)
+function sCompare(t, lt) {
+  bgGradient('#13243B', '#0E1A2B');
+  text('EL “ATAJO” SALE CARO', 540, 290, { size: 66, color: C.white, alpha: prog(lt, 0, .4) });
+  const kh = prog(lt, .3, .7);
+  ctx.save(); ctx.globalAlpha = kh;
+  ctx.fillStyle = C.red; rr(70, 380, 460, 100, 50); ctx.fill();
+  ctx.fillStyle = C.green; rr(550, 380, 460, 100, 50); ctx.fill();
+  text('ASÍ NO ❌', 300, 432, { size: 52, color: C.white });
+  text('ASÍ SÍ ✅', 780, 432, { size: 52, color: C.ink });
+  ctx.restore();
+  const rows = [
+    ['Destornillador', 'como palanca', 'Cada una', 'para lo suyo'],
+    ['Llave que no es', 'de la medida', 'Llave de la', 'medida justa'],
+    ['Herramientas', 'en el bolsillo', 'En la caja o', 'en el cinturón'],
+  ];
+  rows.forEach(([a1, a2, b1, b2], i) => {
+    const y = 520 + i * 300, d = .7 + i * 1.0;
+    const ka = easeOut(prog(lt, d, d + .45)), kb = easeOut(prog(lt, d + .45, d + .9));
+    ctx.save(); ctx.globalAlpha = ka; ctx.translate(-(1 - ka) * 300, 0);
+    ctx.fillStyle = 'rgba(229,57,53,.16)'; rr(70, y, 460, 260, 34); ctx.fill();
+    ctx.strokeStyle = C.red; ctx.lineWidth = 5; rr(70, y, 460, 260, 34); ctx.stroke();
+    text(a1, 300, y + 100, { size: 46, color: C.white }); text(a2, 300, y + 160, { size: 46, color: C.white });
+    ctx.restore();
+    ctx.save(); ctx.globalAlpha = kb; ctx.translate((1 - kb) * 300, 0);
+    ctx.fillStyle = 'rgba(34,197,94,.16)'; rr(550, y, 460, 260, 34); ctx.fill();
+    ctx.strokeStyle = C.green; ctx.lineWidth = 5; rr(550, y, 460, 260, 34); ctx.stroke();
+    text(b1, 780, y + 100, { size: 46, color: C.white }); text(b2, 780, y + 160, { size: 46, color: C.white });
+    ctx.restore();
+  });
+  const k = prog(lt, 4.2, 4.7);
+  ctx.save(); ctx.globalAlpha = k;
+  ctx.fillStyle = C.white; rr(110, 1450, 860, 150, 34); ctx.fill();
+  text('Ese “atajo” te puede', 540, 1500, { size: 50, color: C.ink });
+  text('costar un ojo o una mano.', 540, 1560, { size: 50, color: C.red });
+  ctx.restore();
+}
+
+// 6) REVISALA ANTES DE USARLA (32–40.5 s)
+function sInspect(t, lt) {
+  bgGradient('#0E1A2B', '#16304F'); dotsGrid(t, .05);
+  text('ANTES DE USARLA,', 540, 280, { size: 64, color: C.white, alpha: prog(lt, 0, .4) });
+  text('REVISALA 🔍', 540, 370, { size: 76, color: C.yellow, alpha: prog(lt, .2, .6) });
+  // martillo grande vertical
+  const kh = easeOut(prog(lt, .3, .8));
+  ctx.save(); ctx.globalAlpha = kh; ctx.translate(0, (1 - kh) * 80);
+  ctx.fillStyle = '#A0672F'; rr(232, 620, 56, 760, 22); ctx.fill();
+  ctx.fillStyle = '#8A5626'; rr(232, 1200, 56, 180, 22); ctx.fill();
+  ctx.fillStyle = '#9AA7B8'; rr(130, 500, 260, 120, 18); ctx.fill();
+  ctx.fillStyle = '#6E7D92'; rr(130, 500, 60, 120, 14); ctx.fill();
+  ctx.restore();
+  const items = [
+    [570, 'Cabeza firme', 'sin juego ni fisuras', C.white, C.ink],
+    [820, 'Mango sano', 'sin rajaduras ni astillas', C.white, C.ink],
+    [1070, 'Limpia y seca', 'sin grasa ni aceite', C.white, C.ink],
+    [1320, '¿Algo mal?', 'No la uses: avisá', C.red, C.white],
+  ];
+  items.forEach(([y, a, b, col, tc], i) => {
+    const d = 1.0 + i * 1.6, k = easeOut(prog(lt, d, d + .45));
+    if (k <= 0) return;
+    ctx.save(); ctx.globalAlpha = k;
+    ctx.strokeStyle = col === C.red ? C.red : C.yellow; ctx.lineWidth = 6; ctx.setLineDash([14, 12]);
+    ctx.beginPath(); ctx.moveTo(i === 0 ? 390 : 290, y); ctx.lineTo(lerp(i === 0 ? 390 : 290, 460, k), y); ctx.stroke(); ctx.setLineDash([]);
+    ctx.translate((1 - k) * 200, 0);
+    ctx.fillStyle = col; rr(460, y - 85, 560, 170, 34); ctx.fill();
+    text(a, 600, y - 26, { size: 52, color: tc, align: 'left' });
+    text(b, 600, y + 38, { size: 36, weight: 500, color: col === C.red ? C.white : C.steel, align: 'left' });
+    ctx.restore();
+    const kc = popIn(lt, d + .45, .35);
+    if (i < 3) check(530, y, kc, clamp(kc)); else cross(530, y, kc, clamp(kc));
+  });
+  // lupa que recorre el martillo
+  const ly = lerp(560, 1320, clamp((lt - 1.0) / 4.8));
+  if (lt > .8 && lt < 7.2) withT(260 + Math.sin(lt * 5) * 14, ly, 1, 0, () => {
+    ctx.strokeStyle = C.white; ctx.lineWidth = 12; ctx.beginPath(); ctx.arc(0, 0, 62, 0, 7); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.fill();
+    ctx.lineWidth = 20; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(46, 46); ctx.lineTo(100, 100); ctx.stroke();
+  }, prog(lt, .8, 1.1) * (1 - prog(lt, 6.9, 7.2)));
+  text('Vale para llaves, pinzas, cutters, destornilladores…', 540, 1500, { size: 34, weight: 700, color: C.gray, alpha: prog(lt, 7.0, 7.4) });
+}
+
+// 7) QUÉ HACER (40.5–48 s)
+function sSteps(t, lt) {
+  bgGradient('#0E1A2B', '#13243B');
+  hazardStripe(200, 36, lt * 120, .9);
+  text('PARA LABURAR SEGURO', 540, 350, { size: 70, color: C.yellow, alpha: prog(lt, 0, .4) });
+  text('Hacé esto:', 540, 440, { size: 50, weight: 700, alpha: prog(lt, .2, .6) });
+  const steps = [
+    ['🔧', 'Usá la correcta', 'para cada tarea'],
+    ['🔍', 'Revisala antes', 'de empezar a laburar'],
+    ['✂️', 'Cortá hacia afuera', 'nunca hacia tu cuerpo'],
+    ['🧰', 'Guardala en su lugar', 'y la rota, fuera de uso'],
+  ];
+  steps.forEach(([ic, a, b], i) => {
+    const d = .7 + i * 1.1, k = easeOut(prog(lt, d, d + .45));
+    if (k <= 0) return;
+    const y = 540 + i * 250;
+    ctx.save(); ctx.globalAlpha = k; ctx.translate((1 - k) * 200, 0);
+    ctx.fillStyle = C.white; rr(80, y, 920, 210, 36); ctx.fill();
+    ctx.fillStyle = C.navy; ctx.beginPath(); ctx.arc(190, y + 105, 70, 0, 7); ctx.fill();
+    text(ic, 190, y + 110, { size: 70 });
+    text(a, 300, y + 78, { size: 52, color: C.ink, align: 'left' });
+    text(b, 300, y + 145, { size: 40, weight: 500, color: C.steel, align: 'left' });
+    check(930, y + 105, popIn(lt, d + .5, .35), clamp(popIn(lt, d + .5, .35)));
+    ctx.restore();
+  });
+}
+
+// 8) CTA (48–55 s)
+function sCTA(t, lt) {
+  bgGradient('#1B3354', '#0E1A2B');
+  burst(540, 760, 360, 520, 16, lt * .3, 'rgba(255,196,0,.10)');
+  const k1 = popIn(lt, .1, .5);
+  withT(540, 560, k1, 0, () => {
+    text('La herramienta correcta,', 0, -150, { size: 62, color: C.white });
+    text('BIEN USADA', 0, -40, { size: 130, color: C.yellow, shadow: true });
+    text('te devuelve a casa', 0, 90, { size: 70, color: C.white });
+    text('ENTERO.', 0, 190, { size: 110, color: C.green, stroke: C.white, sw: 8 });
+  }, clamp(k1));
+  const k2 = popIn(lt, 1.8, .5), pulse = 1 + Math.sin(lt * 6) * .035 * clamp(lt - 2.3);
+  withT(540, 1040, k2 * pulse, 0, () => {
+    ctx.fillStyle = C.yellow; rr(-400, -85, 800, 170, 85); ctx.fill();
+    text('SEGUÍ a @recursos.sst', 0, 4, { size: 60, color: C.ink });
+  }, clamp(k2));
+  const k3 = prog(lt, 2.8, 3.2), k4 = prog(lt, 3.4, 3.8);
+  text('💾 Guardalo para tu próxima charla de 5′', 540, 1230, { size: 44, weight: 700, alpha: k3 });
+  text('📤 Compartilo con tu equipo', 540, 1310, { size: 44, weight: 700, alpha: k4 });
+  if (lt > 2.4) text('👆', 840 + Math.sin(lt * 6) * 10, 1170, { size: 90, alpha: prog(lt, 2.4, 2.7) });
+  text('Comentá: ¿qué herramienta ves peor usada en tu laburo?', 540, 1440, { size: 34, weight: 500, color: C.gray, alpha: prog(lt, 4.4, 4.9) });
+}
+
+// ---------- transición entre escenas ----------
+function render(t) {
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1;
+  ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
+  const i = SC.findIndex(s => t >= s.a && t < s.b);
+  const s = SC[i < 0 ? SC.length - 1 : i];
+  s.f(t, t - s.a);
+  // barrido amarillo de transición (0.25 s de cada lado del corte)
+  for (const sc of SC.slice(1)) {
+    const d = t - sc.a;
+    if (d > -.22 && d < .22) {
+      const k = (d + .22) / .44; // 0 → 1
+      const x = lerp(-W * 1.3, W * 1.3, easeInOut(k));
+      ctx.save(); ctx.fillStyle = C.yellow; ctx.beginPath();
+      ctx.moveTo(x - 300, 0); ctx.lineTo(x + W, 0); ctx.lineTo(x + W - 300, H); ctx.lineTo(x - 600, H); ctx.closePath(); ctx.fill(); ctx.restore();
+    }
+  }
+  chrome(t);
+}
+window.render = render;
+window.DURATION = DURATION;
+window.ready = document.fonts.load(F(900, 40)).then(() => document.fonts.load(F(700, 40))).then(() => document.fonts.load(F(500, 40))).then(() => document.fonts.ready);
+</script>
+</body>
+</html>
