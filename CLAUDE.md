@@ -72,11 +72,25 @@ Plantilla en `videos/que-es-un-incidente/`:
 - Limitaciones del entorno: no hay TTS (voces bloqueadas por red) → videos con texto en pantalla + música, pensados para ver sin sonido.
   Zonas seguras: contenido clave entre y=220 y y=1500, márgenes 80 px (la UI de TikTok/Reels tapa abajo y a la derecha).
 
+## Producción de carruseles
+Plantilla en `carruseles/historia-de-marca/`:
+- `placas.html`: cada `<section class="s">` es una placa de 1080×1350 (4:5) en HTML/CSS. Fuente Inter Display local
+  (`file:///usr/share/fonts/opentype/inter/InterDisplay-*.otf`). Componentes: `.top` (marca + n/N), `.bot` (@recursos.sst + "Deslizá →"),
+  `.tag` (etiqueta de color), `.list/.li` (tarjetas con emoji y borde de color: `.x` rojo, `.ok` verde), `.tape` (cinta de peligro
+  en portada y cierre), `<symbol id="op">` (operario SVG con casco amarillo y chaleco naranja), clase `.c` para centrar el contenido vertical.
+- `render.js`: Playwright saca una captura de cada section → `placa-01.png`... (tarda segundos).
+- `README.md`: tabla placa por placa + textos por red.
+- Estructura: portada con gancho + "Deslizá →" → una idea por placa → cierre con CTA (comentá emoji / guardá / seguí / web).
+- Revisión: armar una hoja de contacto (PIL, 4×2 miniaturas) y mirarla antes de publicar; centrar verticalmente las placas con poco texto.
+- Publicar: commit + push, URLs `raw.githubusercontent.com/.../<branch>/carruseles/<slug>/placa-NN.png` en `media` (en orden),
+  Instagram `instagramData.type: "POST"` + `isAiGenerated: true`; Facebook `facebookData.type: "POST"`; TikTok (modo foto) con `tiktokData.title`.
+
 ## Historial de publicaciones
 | Fecha | Tema | Redes | Links |
 |---|---|---|---|
 | 2026-11-02 10:54 | ¿Qué es un accidente de trabajo? (Ley 24.557, art. 6) | FB, IG, YT · TikTok falló ("Error interno de TikTok") y se re-publicó 11:04 | [IG](https://www.instagram.com/reel/DfPdqeijaFX/) · [FB](https://facebook.com/reel/2427125157822778) · [YT](https://www.youtube.com/shorts/J9nxIJdoO5M) · [TT](https://www.tiktok.com/@recursos.sst/video/7703575306979790100) |
 | 2026-11-02 12:40 | ¿Qué es un incidente? (ISO 45001, pirámide de Bird) — video animado propio | IG, FB, TT, YT ✅ | [IG](https://www.instagram.com/reel/DfPprJdjhMm/) · [FB](https://facebook.com/reel/1158300287020885) · [TT](https://www.tiktok.com/@recursos.sst/video/7703599566091750674) · [YT](https://www.youtube.com/shorts/VdAD4CnRhx4) |
+| 2026-11-02 21:52 | Historia de marca: "Nadie sale de casa pensando que no vuelve" — carrusel 8 placas | IG, FB (programado; verificar estado) | Metricool ids 414704554 (IG) · 414704576 (FB) |
 
 ## Ideas de próximos temas (serie de conceptos básicos)
 Acto inseguro vs condición insegura · Peligro vs riesgo · Pirámide de Bird en detalle · EPP: cuándo es la última barrera ·
@@ -86,3 +100,7 @@ Trabajo en altura (verificar norma vigente antes de citarla) · Riesgo eléctric
 ## Aprendizajes
 - TikTok puede fallar con "Error interno de TikTok": re-programar solo TikTok unos minutos después.
 - Si el push a GitHub da 403, el usuario tiene que habilitar la app de Claude en el repo (https://github.com/apps/claude/installations/select_target).
+- Carruseles: Metricool acepta PNG de raw.githubusercontent.com en `media` (los copia a static.metricool.com). Una publicación por red.
+- Historias de marca: usar un personaje ilustrativo ("un operario") en lugar de inventar biografía o datos; conflicto → quiebre → transformación → resolución.
+- Hora: el contenedor NO tiene tzdata → `TZ=America/Buenos_Aires date` devuelve la hora UTC (3 h adelantada). Calcular la hora de BA como
+  `date -u -d '-3 hours'` o mirar el `creationDate` que devuelve Metricool. (Pasó: un "publicar ya" quedó 3 h tarde y hubo que reprogramar).
