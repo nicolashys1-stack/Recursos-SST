@@ -104,6 +104,11 @@ Trabajo en altura (verificar norma vigente antes de citarla) · Riesgo eléctric
 - Historias de marca: usar un personaje ilustrativo ("un operario") en lugar de inventar biografía o datos; conflicto → quiebre → transformación → resolución.
 - Hora: el contenedor NO tiene tzdata → `TZ=America/Buenos_Aires date` devuelve la hora UTC (3 h adelantada). Calcular la hora de BA como
   `date -u -d '-3 hours'` o mirar el `creationDate` que devuelve Metricool. (Pasó: un "publicar ya" quedó 3 h tarde y hubo que reprogramar).
+- Sesiones paralelas (videos y carruseles) pushean a la misma rama: antes de pushear hacer `git pull --rebase origin <branch>`
+  y releer CLAUDE.md por si la otra sesión agregó aprendizajes.
+- Videos: la plantilla se reutiliza bien copiando `animacion.html` y reemplazando solo las funciones de escena (mantener los mismos
+  cortes 0/4/12/17/25/32/40.5/48/55 s permite reusar casi todo `audio.py`). Revisar con una hoja de contacto de cuadros (PIL) antes del render final.
+- Normativa de herramientas: citar "Dec. 351/79, Cap. 15 (Máquinas y herramientas)" y Ley 19.587 (arts. 8 y 10) sin inventar número de artículo.
 - Grupos de Facebook: NO se puede publicar automáticamente (Meta cerró la API de Grupos en 2024; Metricool no lo soporta) y automatizar
   la cuenta personal con un bot viola las reglas de Facebook y arriesga la cuenta y la Página. Alternativa: publicar en la Página con
   Metricool y que Nicolás comparta a los grupos con "Compartir → Compartir en un grupo", con variantes de texto para no repetir.
