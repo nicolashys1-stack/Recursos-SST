@@ -83,7 +83,8 @@ Plantilla en `carruseles/historia-de-marca/`:
 - Estructura: portada con gancho + "Deslizá →" → una idea por placa → cierre con CTA (comentá emoji / guardá / seguí / web).
 - Revisión: armar una hoja de contacto (PIL, 4×2 miniaturas) y mirarla antes de publicar; centrar verticalmente las placas con poco texto.
 - Publicar: commit + push, URLs `raw.githubusercontent.com/.../<branch>/carruseles/<slug>/placa-NN.png` en `media` (en orden),
-  Instagram `instagramData.type: "POST"` + `isAiGenerated: true`; Facebook `facebookData.type: "POST"`; TikTok (modo foto) con `tiktokData.title`.
+  Instagram `instagramData.type: "POST"` + `isAiGenerated: true`; Facebook `facebookData.type: "POST"`; TikTok (modo foto) con `tiktokData.title`
+  y **JPG** (TikTok rechaza PNG: exportar `placa-NN.jpg` con PIL `convert('RGB').save(..., quality=92)` y usar esas URLs).
 
 ## Historial de publicaciones
 | Fecha | Tema | Redes | Links |
@@ -92,6 +93,7 @@ Plantilla en `carruseles/historia-de-marca/`:
 | 2026-11-02 12:40 | ¿Qué es un incidente? (ISO 45001, pirámide de Bird) — video animado propio | IG, FB, TT, YT ✅ | [IG](https://www.instagram.com/reel/DfPprJdjhMm/) · [FB](https://facebook.com/reel/1158300287020885) · [TT](https://www.tiktok.com/@recursos.sst/video/7703599566091750674) · [YT](https://www.youtube.com/shorts/VdAD4CnRhx4) |
 | 2026-11-02 21:52 | Historia de marca: "Nadie sale de casa pensando que no vuelve" — carrusel 8 placas | IG, FB ✅ | [IG](https://www.instagram.com/p/DfQo9giCkgy/) · [FB](https://facebook.com/122112359901508879/posts/122112518493508879) |
 | 2026-11-03 11:05 | El uso seguro de las herramientas (Dec. 351/79 Cap. 15, Ley 19.587) — video animado propio | IG, FB, TT, YT ✅ | [IG](https://www.instagram.com/reel/DfSDt9klHnm/) · [FB](https://facebook.com/reel/28826604753687001) · [TT](https://www.tiktok.com/@recursos.sst/video/7703946286814317842) · [YT](https://www.youtube.com/shorts/VMGcXLdRGUA) |
+| 2026-11-03 11:10 | Uso seguro de herramientas — carrusel 8 placas (Dec. 351/79 Cap. 15) | IG, FB ✅ · TikTok falló por PNG, re-programado 15:40 con JPG (verificar) | [IG](https://www.instagram.com/p/DfSEPSTDVv_/) · [FB](https://facebook.com/122112359901508879/posts/122112705819508879) |
 
 ## Ideas de próximos temas (serie de conceptos básicos)
 Acto inseguro vs condición insegura · Peligro vs riesgo · Pirámide de Bird en detalle · EPP: cuándo es la última barrera ·
@@ -113,3 +115,5 @@ Trabajo en altura (verificar norma vigente antes de citarla) · Riesgo eléctric
 - Grupos de Facebook: NO se puede publicar automáticamente (Meta cerró la API de Grupos en 2024; Metricool no lo soporta) y automatizar
   la cuenta personal con un bot viola las reglas de Facebook y arriesga la cuenta y la Página. Alternativa: publicar en la Página con
   Metricool y que Nicolás comparta a los grupos con "Compartir → Compartir en un grupo", con variantes de texto para no repetir.
+- TikTok modo foto: solo acepta JPG/JPEG/WEBP ("The 'image/png' type is not allowed"). IG y FB aceptan PNG.
+- Coordinar con la sesión de videos: el mismo día salieron video y carrusel del mismo tema; conviene alternar temas o espaciar horarios.
