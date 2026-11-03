@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<style>
+@font-face{font-family:"ID";src:url("file:///usr/share/fonts/opentype/inter/InterDisplay-Black.otf");font-weight:900}
+@font-face{font-family:"ID";src:url("file:///usr/share/fonts/opentype/inter/InterDisplay-Bold.otf");font-weight:700}
+@font-face{font-family:"ID";src:url("file:///usr/share/fonts/opentype/inter/InterDisplay-Medium.otf");font-weight:500}
+:root{--navy:#0E1A2B;--navy2:#16263D;--y:#FFC400;--o:#FF6B1A;--r:#E53935;--g:#22C55E;--w:#F4F6FA;--mute:#9AA7BD}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#000;font-family:"ID",sans-serif;color:var(--w)}
+.s{width:1080px;height:1350px;position:relative;overflow:hidden;background:var(--navy);margin-bottom:20px;padding:150px 90px 160px}
+.s::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 85% 10%,rgba(255,196,0,.10),transparent 45%),radial-gradient(circle at 0% 100%,rgba(255,107,26,.08),transparent 50%)}
+.s>*{position:relative}
+.top{position:absolute;top:56px;left:90px;right:90px;display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:26px;letter-spacing:3px;color:var(--mute)}
+.brand{display:flex;align-items:center;gap:14px;color:var(--w)}
+.brand i{width:34px;height:34px;background:var(--y);border-radius:8px;display:inline-block;clip-path:polygon(50% 0,100% 100%,0 100%)}
+.bot{position:absolute;bottom:56px;left:90px;right:90px;display:flex;justify-content:space-between;font-weight:700;font-size:28px;color:var(--mute)}
+.bot b{color:var(--y)}
+.tape{position:absolute;left:-20px;right:-20px;height:46px;background:repeating-linear-gradient(-45deg,var(--y) 0 40px,#111 40px 80px)}
+.tag{display:inline-block;font-weight:900;font-size:30px;letter-spacing:4px;padding:12px 24px;border-radius:10px;background:var(--y);color:var(--navy);margin-bottom:44px}
+.tag.red{background:var(--r);color:#fff}.tag.green{background:var(--g);color:var(--navy)}.tag.orange{background:var(--o);color:#fff}
+h1{font-weight:900;font-size:104px;line-height:1.02;letter-spacing:-2px}
+h2{font-weight:900;font-size:82px;line-height:1.05;letter-spacing:-1.5px}
+p{font-weight:500;font-size:44px;line-height:1.3;color:#D5DCE8;margin-top:36px}
+.y{color:var(--y)}.o{color:var(--o)}.r{color:var(--r)}.g{color:var(--g)}
+.list{margin-top:46px;display:flex;flex-direction:column;gap:26px}
+.li{display:flex;gap:26px;align-items:center;background:var(--navy2);border-radius:22px;padding:26px 32px;font-weight:700;font-size:40px;line-height:1.2;border-left:10px solid var(--y)}
+.li em{font-style:normal;font-size:46px}
+.li.x{border-color:var(--r)}.li.ok{border-color:var(--g)}
+.op{position:absolute}
+.time{font-weight:900;font-size:150px;color:var(--y);letter-spacing:-4px;line-height:1}
+.s.c{display:flex;flex-direction:column;justify-content:center;align-items:flex-start}.s.c .list{align-self:stretch}
+.src{position:absolute;bottom:110px;left:90px;right:90px;font-weight:500;font-size:24px;color:var(--mute)}
+.big{font-size:150px;line-height:1}
+.quote{border-left:12px solid var(--y);padding-left:40px}
+</style></head><body>
+
+<!-- operario reutilizable -->
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="op" viewBox="0 0 300 420">
+  <ellipse cx="150" cy="410" rx="110" ry="10" fill="#000" opacity=".25"/>
+  <rect x="95" y="300" width="45" height="105" rx="14" fill="#2B3A55"/><rect x="160" y="300" width="45" height="105" rx="14" fill="#2B3A55"/>
+  <path d="M70 190 Q150 160 230 190 L240 320 L60 320 Z" fill="#FF6B1A"/>
+  <rect x="62" y="248" width="176" height="16" fill="#E8EEF5" opacity=".9"/><rect x="62" y="282" width="176" height="16" fill="#E8EEF5" opacity=".9"/>
+  <rect x="142" y="185" width="16" height="135" fill="#E0560F"/>
+  <rect x="34" y="195" width="40" height="110" rx="20" fill="#2B3A55"/><rect x="226" y="195" width="40" height="110" rx="20" fill="#2B3A55"/>
+  <circle cx="54" cy="310" r="20" fill="#E9B48A"/><circle cx="246" cy="310" r="20" fill="#E9B48A"/>
+  <rect x="132" y="150" width="36" height="40" fill="#D9A27A"/>
+  <circle cx="150" cy="115" r="58" fill="#E9B48A"/>
+  <circle cx="130" cy="120" r="7" fill="#1B2433"/><circle cx="170" cy="120" r="7" fill="#1B2433"/>
+  <path d="M132 145 Q150 158 168 145" stroke="#1B2433" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M86 98 Q90 38 150 36 Q210 38 214 98 Z" fill="#FFC400"/><rect x="74" y="92" width="152" height="18" rx="9" fill="#FFC400"/>
+  <rect x="142" y="38" width="16" height="58" rx="8" fill="#E6AF00"/>
+</symbol></defs></svg>
+
+<!-- 1 PORTADA -->
+<section class="s" id="s1">
+  <div class="tape" style="top:0"></div>
+  <div class="top" style="top:80px"><span class="brand"><i></i>RECURSOS SST</span><span>1/8</span></div>
+  <div style="margin-top:70px"><span class="tag">USO SEGURO DE HERRAMIENTAS</span></div>
+  <h1>Tu herramienta te salva el día… <span class="y">o te manda a la guardia.</span></h1>
+  <p style="max-width:600px">6 reglas que tenés que saber <b class="y">antes de agarrarla.</b></p>
+  <div class="op" style="right:70px;bottom:130px;font-size:200px;line-height:1">🔧</div>
+  <svg class="op" style="right:150px;bottom:120px" width="300" height="420"><use href="#op"/></svg>
+  <div class="bot"><span>@recursos.sst</span><b>Deslizá →</b></div>
+</section>
+
+<!-- 2 -->
+<section class="s c" id="s2">
+  <div class="top"><span class="brand"><i></i>RECURSOS SST</span><span>2/8</span></div>
+  <span class="tag">REGLA 1</span>
+  <h2>Revisala <span class="y">antes de usarla.</span></h2>
+  <div class="list">
+    <div class="li ok"><em>🪵</em>Mango firme, sin fisuras ni astillas</div>
+    <div class="li ok"><em>🔩</em>Cabeza bien sujeta, sin rebabas</div>
+    <div class="li ok"><em>🔌</em>Cable y ficha sanos, sin empalmes</div>
+    <div class="li x"><em>🏷️</em>¿Está dañada? Fuera de servicio, etiquetala y avisá</div>
+  </div>
+  <div class="bot"><span>@recursos.sst</span><b>→</b></div>
+</section>
+
+<!-- 3 -->
+<section class="s c" id="s3">
+  <div class="top"><span class="brand"><i></i>RECURSOS SST</span><span>3/8</span></div>
+  <span class="tag orange">REGLA 2</span>
+  <h2>Cada herramienta <span class="o">para lo suyo.</span></h2>
+  <div class="list">
+    <div class="li x"><em>❌</em>Destornillador como palanca o cincel</div>
+    <div class="li x"><em>❌</em>Llave o pinza como martillo</div>
+    <div class="li x"><em>❌</em>"Alargar" la llave con un caño</div>
+    <div class="li ok"><em>✅</em>Herramienta y medida correctas para la tarea</div>
+  </div>
+  <div class="bot"><span>@recursos.sst</span><b>→</b></div>
+</section>
+
+<!-- 4 -->
+<section class="s c" id="s4" style="background:#1A0F14">
+  <div class="top"><span class="brand"><i></i>RECURSOS SST</span><span>4/8</span></div>
+  <span class="tag red">REGLA 3 · ELÉCTRICAS</span>
+  <h2>La protección <span class="r">no se saca.</span> Nunca.</h2>
+  <div class="list">
+    <div class="li x"><em>🛡️</em>Amoladora siempre con su protector</div>
+    <div class="li ok"><em>🔌</em>Desenchufá para cambiar disco o mecha</div>
+    <div class="li ok"><em>💿</em>Disco adecuado a la máquina y a sus RPM</div>
+    <div class="li ok"><em>💧</em>Cable lejos del agua, del filo y del paso</div>
+  </div>
+  <div class="bot"><span>@recursos.sst</span><b>→</b></div>
+</section>
+
+<!-- 5 -->
+<section class="s c" id="s5">
+  <div class="top"><span class="brand"><i></i>RECURSOS SST</span><span>5/8</span></div>
+  <span class="tag green">REGLA 4</span>
+  <h2>Equipate <span class="g">para la tarea.</span></h2>
+  <div class="list">
+    <div class="li ok"><em>🥽</em>Anteojos de seguridad: las partículas vuelan</div>
+    <div class="li ok"><em>🎧</em>Protección auditiva con máquinas ruidosas</div>
+    <div class="li ok"><em>🧤</em>Guantes según el riesgo de la tarea</div>
+    <div class="li x"><em>💍</em>Cerca de partes que giran: nada suelto (anillos, cadenas, ropa holgada)</div>
+  </div>
+  <div class="bot"><span>@recursos.sst</span><b>→</b></div>
+</section>
+
+<!-- 6 -->
+<section class="s c" id="s6">
+  <div class="top"><span class="brand"><i></i>RECURSOS SST</span><span>6/8</span></div>
+  <span class="tag">REGLAS 5 Y 6</span>
+  <h2>Llevala bien. <span class="y">Guardala mejor.</span></h2>
+  <div class="list">
+    <div class="li x"><em>👖</em>Nada filoso o punzante en el bolsillo</div>
+    <div class="li ok"><em>🧰</em>Caja o cinturón portaherramientas</div>
+    <div class="li ok"><em>🪢</em>En altura, atadas: que no caigan sobre nadie</div>
+    <div class="li ok"><em>🧽</em>Limpias y en su lugar al terminar</div>
+  </div>
+  <div class="bot"><span>@recursos.sst</span><b>→</b></div>
+</section>
+
+<!-- 7 -->
+<section class="s c" id="s7">
+  <div class="top"><span class="brand"><i></i>RECURSOS SST</span><span>7/8</span></div>
+  <span class="tag">QUÉ DICE LA NORMA</span>
+  <div class="quote">
+    <h2 style="font-size:66px">Las herramientas tienen que ser <span class="y">adecuadas para la tarea</span> y estar <span class="y">en buen estado.</span></h2>
+  </div>
+  <p>📌 Decreto 351/79, reglamentario de la Ley 19.587 — Capítulo 15: Máquinas y herramientas.</p>
+  <p>La empresa provee y mantiene. Vos revisás, usás bien y <b style="color:#fff">avisás.</b></p>
+  <div class="bot"><span>@recursos.sst</span><b>→</b></div>
+</section>
+
+<!-- 8 CTA -->
+<section class="s c" id="s8">
+  <div class="tape" style="bottom:0"></div>
+  <div class="top"><span class="brand"><i></i>RECURSOS SST</span><span>8/8</span></div>
+  <h1 style="font-size:88px">Herramienta rota = <span class="y">herramienta fuera de servicio.</span></h1>
+  <div class="list" style="margin-top:56px">
+    <div class="li"><em>💬</em>¿Cuál es el mal uso que más ves en tu laburo?</div>
+    <div class="li"><em>💾</em>Guardalo para tu charla de 5 minutos</div>
+    <div class="li"><em>👉</em>Compartilo y seguí a @recursos.sst</div>
+  </div>
+  <p style="margin-top:46px;font-weight:700;color:var(--mute)">Checklists en <span class="y">recursos-sst.com.ar</span> · link en la bio</p>
+</section>
+</body></html>
