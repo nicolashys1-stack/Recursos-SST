@@ -91,6 +91,7 @@ Plantilla en `carruseles/historia-de-marca/`:
 | 2026-11-02 10:54 | ¿Qué es un accidente de trabajo? (Ley 24.557, art. 6) | FB, IG, YT · TikTok falló ("Error interno de TikTok") y se re-publicó 11:04 | [IG](https://www.instagram.com/reel/DfPdqeijaFX/) · [FB](https://facebook.com/reel/2427125157822778) · [YT](https://www.youtube.com/shorts/J9nxIJdoO5M) · [TT](https://www.tiktok.com/@recursos.sst/video/7703575306979790100) |
 | 2026-11-02 12:40 | ¿Qué es un incidente? (ISO 45001, pirámide de Bird) — video animado propio | IG, FB, TT, YT ✅ | [IG](https://www.instagram.com/reel/DfPprJdjhMm/) · [FB](https://facebook.com/reel/1158300287020885) · [TT](https://www.tiktok.com/@recursos.sst/video/7703599566091750674) · [YT](https://www.youtube.com/shorts/VdAD4CnRhx4) |
 | 2026-11-02 21:52 | Historia de marca: "Nadie sale de casa pensando que no vuelve" — carrusel 8 placas | IG, FB ✅ | [IG](https://www.instagram.com/p/DfQo9giCkgy/) · [FB](https://facebook.com/122112359901508879/posts/122112518493508879) |
+| 2026-11-03 11:05 | El uso seguro de las herramientas (Dec. 351/79 Cap. 15, Ley 19.587) — video animado propio | IG, FB, TT, YT ✅ | [IG](https://www.instagram.com/reel/DfSDt9klHnm/) · [FB](https://facebook.com/reel/28826604753687001) · [TT](https://www.tiktok.com/@recursos.sst/video/7703946286814317842) · [YT](https://www.youtube.com/shorts/VMGcXLdRGUA) |
 
 ## Ideas de próximos temas (serie de conceptos básicos)
 Acto inseguro vs condición insegura · Peligro vs riesgo · Pirámide de Bird en detalle · EPP: cuándo es la última barrera ·
