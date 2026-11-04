@@ -119,6 +119,12 @@ Trabajo en altura (verificar norma vigente antes de citarla) · Riesgo eléctric
   inventados) y cierre con debate binario en comentarios (🎓 vs 🦺) + "mandáselo al colega que…". Portada en el gancho (s 2,8).
 - Coordinación video/carrusel: cuando Nicolás pide el mismo tema a las dos sesiones, salen a la misma hora (pasó con herramientas
   y con el CV a las 22:01). Antes de programar, mirar `getScheduledPosts` del día y, si ya hay otra pieza del tema, separar 2–4 h.
+- Miniaturas de YouTube (estilo del canal): `videos/miniaturas-youtube/` (`build.py` → `miniaturas.html`, `node render.js` → JPG 1080×1920).
+  Fondo negro #121212 con grilla y brillo amarillo arriba a la derecha · logo casco + "RECURSOS SST / Nico Silveyra" · etiqueta amarilla
+  en mayúsculas · titular blanco Inter Display Black con palabra clave en amarillo · bajada con barra amarilla · caja amarilla con globo
+  de chat: pregunta + "Comentá". Contenido entre y=250 y y=1620 (YouTube recorta arriba y abajo en la grilla de Shorts).
+  Metricool NO cambia miniaturas de videos ya publicados y desde el contenedor no hay API de YouTube ni acceso a i.ytimg.com:
+  Nicolás las sube a mano en YouTube Studio. Para videos nuevos, pasar la miniatura en `videoThumbnailUrl` al programar.
 - Grupos de Facebook: NO se puede publicar automáticamente (Meta cerró la API de Grupos en 2024; Metricool no lo soporta) y automatizar
   la cuenta personal con un bot viola las reglas de Facebook y arriesga la cuenta y la Página. Alternativa: publicar en la Página con
   Metricool y que Nicolás comparta a los grupos con "Compartir → Compartir en un grupo", con variantes de texto para no repetir.
