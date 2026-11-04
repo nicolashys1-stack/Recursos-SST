@@ -125,6 +125,11 @@ Trabajo en altura (verificar norma vigente antes de citarla) · Riesgo eléctric
   de chat: pregunta + "Comentá". Contenido entre y=250 y y=1620 (YouTube recorta arriba y abajo en la grilla de Shorts).
   Metricool NO cambia miniaturas de videos ya publicados y desde el contenedor no hay API de YouTube ni acceso a i.ytimg.com:
   Nicolás las sube a mano en YouTube Studio. Para videos nuevos, pasar la miniatura en `videoThumbnailUrl` al programar.
+- **Límite de Metricool (plan gratuito): 20 publicaciones.** Cada red cuenta como una publicación (1 video en 4 redes = 4).
+  Al pasarse, `createScheduledPost` igual responde OK y queda PENDING, pero a la hora falla con ERROR
+  "You have reached your Metricool account limit." (pasó el 2026-11-04 con los reels de ISO, IRAM y ART/SRT). Antes de programar
+  tandas grandes, preguntar a Nicolás cuántas publicaciones le quedan en el mes.
+- Reels de 20 s: motor en `videos/reel20/` (configs JSON → `build.py` → `animacion.html`, `audio.py` y `render.js` compartidos).
 - Grupos de Facebook: NO se puede publicar automáticamente (Meta cerró la API de Grupos en 2024; Metricool no lo soporta) y automatizar
   la cuenta personal con un bot viola las reglas de Facebook y arriesga la cuenta y la Página. Alternativa: publicar en la Página con
   Metricool y que Nicolás comparta a los grupos con "Compartir → Compartir en un grupo", con variantes de texto para no repetir.
