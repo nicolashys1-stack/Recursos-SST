@@ -95,6 +95,7 @@ Plantilla en `carruseles/historia-de-marca/`:
 | 2026-11-03 11:05 | El uso seguro de las herramientas (Dec. 351/79 Cap. 15, Ley 19.587) — video animado propio | IG, FB, TT, YT ✅ | [IG](https://www.instagram.com/reel/DfSDt9klHnm/) · [FB](https://facebook.com/reel/28826604753687001) · [TT](https://www.tiktok.com/@recursos.sst/video/7703946286814317842) · [YT](https://www.youtube.com/shorts/VMGcXLdRGUA) |
 | 2026-11-03 11:10 | Uso seguro de herramientas — carrusel 8 placas (Dec. 351/79 Cap. 15) | IG, FB ✅ · TikTok ✅ 15:40 (falló con PNG, re-publicado en JPG) | [IG](https://www.instagram.com/p/DfSEPSTDVv_/) · [FB](https://facebook.com/122112359901508879/posts/122112705819508879) · [TT](https://www.tiktok.com/@recursos.sst/video/7704017064037469448) |
 | 2026-11-03 22:01 | CV en Seguridad e Higiene — carrusel polémico 9 placas ("Tu título no te consigue laburo. Tu CV, sí.") | IG, FB, TT ✅ | [IG](https://www.instagram.com/p/DfTPDPwiK22/) · [FB](https://facebook.com/122112359901508879/posts/122112853971508879) · [TT](https://www.tiktok.com/@recursos.sst/video/7704115717309861140) |
+| 2026-11-03 22:01 | Reel viral: "Tu título no te consigue laburo. Tu CV, sí." (CV para técnicos/licenciados/ingenieros en SyH) — video animado 42 s | IG, FB, TT, YT ✅ | [IG](https://www.instagram.com/reel/DfTO9mugq2g/) · [FB](https://facebook.com/reel/2223469601933376) · [TT](https://www.tiktok.com/@recursos.sst/video/7704115752478985493) · [YT](https://www.youtube.com/shorts/mWuUlUZpX9A) |
 
 ## Ideas de próximos temas (serie de conceptos básicos)
 Acto inseguro vs condición insegura · Peligro vs riesgo · Pirámide de Bird en detalle · EPP: cuándo es la última barrera ·
@@ -116,6 +117,8 @@ Trabajo en altura (verificar norma vigente antes de citarla) · Riesgo eléctric
 - Formato "reel viral/polémico" (ej. `videos/tu-titulo-no-te-consigue-laburo/`): 42 s en vez de 55, 124 bpm, badge "🔥 OPINIÓN IMPOPULAR",
   palabras que entran con golpe de zoom (`punch`), errores con humor reconocible, antes/después concreto (marcar "ejemplos" si hay números
   inventados) y cierre con debate binario en comentarios (🎓 vs 🦺) + "mandáselo al colega que…". Portada en el gancho (s 2,8).
+- Coordinación video/carrusel: cuando Nicolás pide el mismo tema a las dos sesiones, salen a la misma hora (pasó con herramientas
+  y con el CV a las 22:01). Antes de programar, mirar `getScheduledPosts` del día y, si ya hay otra pieza del tema, separar 2–4 h.
 - Grupos de Facebook: NO se puede publicar automáticamente (Meta cerró la API de Grupos en 2024; Metricool no lo soporta) y automatizar
   la cuenta personal con un bot viola las reglas de Facebook y arriesga la cuenta y la Página. Alternativa: publicar en la Página con
   Metricool y que Nicolás comparta a los grupos con "Compartir → Compartir en un grupo", con variantes de texto para no repetir.
