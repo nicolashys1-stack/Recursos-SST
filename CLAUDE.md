@@ -112,6 +112,9 @@ Trabajo en altura (verificar norma vigente antes de citarla) · Riesgo eléctric
 - Videos: la plantilla se reutiliza bien copiando `animacion.html` y reemplazando solo las funciones de escena (mantener los mismos
   cortes 0/4/12/17/25/32/40.5/48/55 s permite reusar casi todo `audio.py`). Revisar con una hoja de contacto de cuadros (PIL) antes del render final.
 - Normativa de herramientas: citar "Dec. 351/79, Cap. 15 (Máquinas y herramientas)" y Ley 19.587 (arts. 8 y 10) sin inventar número de artículo.
+- Formato "reel viral/polémico" (ej. `videos/tu-titulo-no-te-consigue-laburo/`): 42 s en vez de 55, 124 bpm, badge "🔥 OPINIÓN IMPOPULAR",
+  palabras que entran con golpe de zoom (`punch`), errores con humor reconocible, antes/después concreto (marcar "ejemplos" si hay números
+  inventados) y cierre con debate binario en comentarios (🎓 vs 🦺) + "mandáselo al colega que…". Portada en el gancho (s 2,8).
 - Grupos de Facebook: NO se puede publicar automáticamente (Meta cerró la API de Grupos en 2024; Metricool no lo soporta) y automatizar
   la cuenta personal con un bot viola las reglas de Facebook y arriesga la cuenta y la Página. Alternativa: publicar en la Página con
   Metricool y que Nicolás comparta a los grupos con "Compartir → Compartir en un grupo", con variantes de texto para no repetir.
