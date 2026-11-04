@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<style>
+@font-face{font-family:"ID";src:url("file:///usr/share/fonts/opentype/inter/InterDisplay-Black.otf");font-weight:900}
+@font-face{font-family:"ID";src:url("file:///usr/share/fonts/opentype/inter/InterDisplay-Bold.otf");font-weight:700}
+@font-face{font-family:"ID";src:url("file:///usr/share/fonts/opentype/inter/InterDisplay-Medium.otf");font-weight:500}
+:root{--navy:#0E1A2B;--navy2:#16263D;--y:#FFC400;--o:#FF6B1A;--r:#E53935;--g:#22C55E;--w:#F4F6FA;--mute:#9AA7BD}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#000;font-family:"ID",sans-serif;color:var(--w)}
+.s{width:1080px;height:1350px;position:relative;overflow:hidden;background:var(--navy);margin-bottom:20px;padding:150px 90px 160px}
+.s::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 85% 10%,rgba(255,196,0,.10),transparent 45%),radial-gradient(circle at 0% 100%,rgba(255,107,26,.08),transparent 50%)}
+.s>*{position:relative}
+.top{position:absolute;top:56px;left:90px;right:90px;display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:26px;letter-spacing:3px;color:var(--mute)}
+.brand{display:flex;align-items:center;gap:14px;color:var(--w)}
+.brand i{width:34px;height:34px;background:var(--y);border-radius:8px;display:inline-block;clip-path:polygon(50% 0,100% 100%,0 100%)}
+.bot{position:absolute;bottom:56px;left:90px;right:90px;display:flex;justify-content:space-between;font-weight:700;font-size:28px;color:var(--mute)}
+.bot b{color:var(--y)}
+.tape{position:absolute;left:-20px;right:-20px;height:46px;background:repeating-linear-gradient(-45deg,var(--y) 0 40px,#111 40px 80px)}
+.tag{display:inline-block;font-weight:900;font-size:30px;letter-spacing:4px;padding:12px 24px;border-radius:10px;background:var(--y);color:var(--navy);margin-bottom:44px}
+.tag.red{background:var(--r);color:#fff}.tag.green{background:var(--g);color:var(--navy)}.tag.orange{background:var(--o);color:#fff}
+h1{font-weight:900;font-size:104px;line-height:1.02;letter-spacing:-2px}
+h2{font-weight:900;font-size:82px;line-height:1.05;letter-spacing:-1.5px}
+p{font-weight:500;font-size:44px;line-height:1.3;color:#D5DCE8;margin-top:36px}
+.y{color:var(--y)}.o{color:var(--o)}.r{color:var(--r)}.g{color:var(--g)}
+.list{margin-top:46px;display:flex;flex-direction:column;gap:26px}
+.li{display:flex;gap:26px;align-items:center;background:var(--navy2);border-radius:22px;padding:26px 32px;font-weight:700;font-size:40px;line-height:1.2;border-left:10px solid var(--y)}
+.li em{font-style:normal;font-size:46px}
+.li.x{border-color:var(--r)}.li.ok{border-color:var(--g)}
+.op{position:absolute}
+.time{font-weight:900;font-size:150px;color:var(--y);letter-spacing:-4px;line-height:1}
+.s.c{display:flex;flex-direction:column;justify-content:center;align-items:flex-start}.s.c .list{align-self:stretch}
+.src{position:absolute;bottom:110px;left:90px;right:90px;font-weight:500;font-size:24px;color:var(--mute)}
+.big{font-size:150px;line-height:1}
+.vs{display:grid;grid-template-columns:1fr;gap:22px;margin-top:40px;align-self:stretch}
+.card{border-radius:22px;padding:28px 34px;font-weight:700;font-size:38px;line-height:1.25}
+.card small{display:block;font-size:26px;letter-spacing:3px;margin-bottom:10px;font-weight:900}
+.bad{background:#2A1418;border:3px solid var(--r)}.bad small{color:var(--r)}
+.good{background:#10261A;border:3px solid var(--g)}.good small{color:var(--g)}
+#s7 .li{padding:18px 28px;font-size:36px}#s7 h2{font-size:72px}#s4 .card{padding:22px 30px;font-size:35px}
+.quote{border-left:12px solid var(--y);padding-left:40px}
+</style></head><body>
+
+<!-- operario reutilizable -->
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="op" viewBox="0 0 300 420">
+  <ellipse cx="150" cy="410" rx="110" ry="10" fill="#000" opacity=".25"/>
+  <rect x="95" y="300" width="45" height="105" rx="14" fill="#2B3A55"/><rect x="160" y="300" width="45" height="105" rx="14" fill="#2B3A55"/>
+  <path d="M70 190 Q150 160 230 190 L240 320 L60 320 Z" fill="#FF6B1A"/>
+  <rect x="62" y="248" width="176" height="16" fill="#E8EEF5" opacity=".9"/><rect x="62" y="282" width="176" height="16" fill="#E8EEF5" opacity=".9"/>
+  <rect x="142" y="185" width="16" height="135" fill="#E0560F"/>
+  <rect x="34" y="195" width="40" height="110" rx="20" fill="#2B3A55"/><rect x="226" y="195" width="40" height="110" rx="20" fill="#2B3A55"/>
+  <circle cx="54" cy="310" r="20" fill="#E9B48A"/><circle cx="246" cy="310" r="20" fill="#E9B48A"/>
+  <rect x="132" y="150" width="36" height="40" fill="#D9A27A"/>
+  <circle cx="150" cy="115" r="58" fill="#E9B48A"/>
+  <circle cx="130" cy="120" r="7" fill="#1B2433"/><circle cx="170" cy="120" r="7" fill="#1B2433"/>
+  <path d="M132 145 Q150 158 168 145" stroke="#1B2433" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M86 98 Q90 38 150 36 Q210 38 214 98 Z" fill="#FFC400"/><rect x="74" y="92" width="152" height="18" rx="9" fill="#FFC400"/>
+  <rect x="142" y="38" width="16" height="58" rx="8" fill="#E6AF00"/>
+</symbol></defs></svg>
+
+<!-- 1 PORTADA -->
+<section class="s" id="s1">
+  <div class="tape" style="top:0"></div>
+  <div class="top" style="top:80px"><span class="brand"><i></i>RECURSOS SST</span><span>1/9</span></div>
+  <div style="margin-top:60px"><span class="tag red">🔥 OPINIÓN IMPOPULAR</span></div>
+  <h1 style="font-size:100px">Tu título en Seguridad e Higiene <span class="r">no te consigue laburo.</span><br><span class="y">Tu CV, sí.</span></h1>
+  <p style="max-width:560px">Y probablemente el tuyo te esté <b style="color:#fff">dejando afuera.</b></p>
+  <div class="op" style="right:90px;bottom:150px;font-size:230px;line-height:1">📄</div>
+  <div class="bot"><span>@recursos.sst</span><b>Deslizá →</b></div>
+</section>
+
+<!-- 2 -->
+<section class="s c" id="s2">
+  <div class="top"><span class="brand"><i></i>RECURSOS SST</span><span>2/9</span></div>
+  <span class="tag">PASA TODO EL TIEMPO</span>
+  <h2>Mismo título.<br>Misma matrícula.<br>Misma búsqueda.</h2>
+  <div class="vs">
+    <div class="card good"><small>CANDIDATO A</small>📞 Lo llaman para la entrevista.</div>
+    <div class="card bad"><small>CANDIDATO B</small>🔇 Nunca le responden.</div>
+  </div>
+  <p>La diferencia no fue lo que sabían. <b class="y">Fue cómo lo contaron.</b></p>
+  <div class="bot"><span>@recursos.sst</span><b>→</b></div>
+</section>
+
+<!-- 3 -->
+<section class="s c" id="s3" style="background:#1A0F14">
+  <div class="top"><span class="brand"><i></i>RECURSOS SST</span><span>3/9</span></div>
+  <span class="tag red">ERRORES QUE TE DEJAN AFUERA</span>
+  <h2>¿Cuántos tiene <span class="r">tu CV?</span></h2>
+  <div class="list">
+    <div class="li x"><em>📋</em>Lista de tareas sin un solo resultado</div>
+    <div class="li x"><em>📚</em>4 páginas con todos los cursos desde 2010</div>
+    <div class="li x"><em>🪪</em>Matrícula o registro habilitante que no aparece</div>
+    <div class="li x"><em>📧</em>Mail tipo "elpibe_crack@…" y foto de vacaciones</div>
+    <div class="li x"><em>🔁</em>El mismo CV para obra, industria y consultora</div>
+  </div>
+  <div class="bot"><span>@recursos.sst</span><b>→</b></div>
+</section>
+
+<!-- 4 -->
+<section class="s c" id="s4">
+  <div class="top"><span class="brand"><i></i>RECURSOS SST</span><span>4/9</span></div>
+  <span class="tag orange">TAREAS vs. RESULTADOS</span>
+  <h2>No cuentes qué hacías. <span class="o">Contá qué lograste.</span></h2>
+  <div class="vs">
+    <div class="card bad"><small>❌ ASÍ NO</small>"Realicé capacitaciones al personal."</div>
+    <div class="card good"><small>✅ ASÍ SÍ</small>"Armé el plan anual de capacitación para los 3 turnos de planta y lo cumplí completo."</div>
+    <div class="card bad"><small>❌ ASÍ NO</small>"Encargado de inspecciones."</div>
+    <div class="card good"><small>✅ ASÍ SÍ</small>"Implementé un checklist diario de EPP que bajó los desvíos repetidos."</div>
+  </div>
+  <div class="bot"><span>@recursos.sst</span><b>→</b></div>
+</section>
+
+<!-- 5 -->
+<section class="s c" id="s5">
+  <div class="top"><span class="brand"><i></i>RECURSOS SST</span><span>5/9</span></div>
+  <span class="tag">LO QUE TIENE QUE ESTAR ARRIBA</span>
+  <h2>Lo que un reclutador <span class="y">busca primero.</span></h2>
+  <div class="list">
+    <div class="li ok"><em>🎓</em>Título + matrícula / registro habilitante</div>
+    <div class="li ok"><em>🏗️</em>Rubros: obra, industria, logística, petróleo…</div>
+    <div class="li ok"><em>⚖️</em>Normativa que manejás: Ley 19.587, Dec. 351/79, Dec. 911/96, Ley 24.557</div>
+    <div class="li ok"><em>🛠️</em>Herramientas: matriz de riesgos, investigación de accidentes, mediciones, ISO 45001</div>
+  </div>
+  <div class="bot"><span>@recursos.sst</span><b>→</b></div>
+</section>
+
+<!-- 6 -->
+<section class="s c" id="s6" style="background:#1A0F14">
+  <div class="top"><span class="brand"><i></i>RECURSOS SST</span><span>6/9</span></div>
+  <span class="tag red">SÍ, LO VAMOS A DECIR</span>
+  <h1 style="font-size:92px">Un técnico con buen CV <span class="y">le puede ganar</span> a un ingeniero con uno malo.</h1>
+  <p>El título te abre la puerta.<br><b style="color:#fff">El CV decide si entrás.</b></p>
+  <div class="bot"><span>@recursos.sst</span><b>→</b></div>
+</section>
+
+<!-- 7 -->
+<section class="s c" id="s7">
+  <div class="top"><span class="brand"><i></i>RECURSOS SST</span><span>7/9</span></div>
+  <span class="tag green">CHECKLIST DE CV SYH</span>
+  <h2>Antes de mandarlo, <span class="g">revisá esto.</span></h2>
+  <div class="list" style="gap:20px">
+    <div class="li ok"><em>📏</em>1 o 2 páginas. No más.</div>
+    <div class="li ok"><em>✍️</em>Perfil de 3 líneas: quién sos y qué resolvés</div>
+    <div class="li ok"><em>🏆</em>Logros con verbos: implementé, reduje, armé</div>
+    <div class="li ok"><em>📅</em>Certificaciones con su vigencia</div>
+    <div class="li ok"><em>🎯</em>Adaptado a cada búsqueda</div>
+    <div class="li ok"><em>💼</em>LinkedIn que diga lo mismo que el CV</div>
+  </div>
+  <div class="bot"><span>@recursos.sst</span><b>→</b></div>
+</section>
+
+<!-- 8 -->
+<section class="s c" id="s8">
+  <div class="top"><span class="brand"><i></i>RECURSOS SST</span><span>8/9</span></div>
+  <span class="tag">LO MÁS IMPORTANTE</span>
+  <div class="quote">
+    <h2 style="font-size:72px">Tu trabajo es cuidar la vida de otros.</h2>
+    <h2 style="font-size:72px;margin-top:24px" class="y">Tu CV tiene que transmitir esa responsabilidad.</h2>
+  </div>
+  <p>Ordenado. Claro. Sin errores. <b style="color:#fff">Como un buen permiso de trabajo.</b></p>
+  <div class="bot"><span>@recursos.sst</span><b>→</b></div>
+</section>
+
+<!-- 9 CTA -->
+<section class="s c" id="s9">
+  <div class="tape" style="bottom:0"></div>
+  <div class="top"><span class="brand"><i></i>RECURSOS SST</span><span>9/9</span></div>
+  <span class="tag red">🔥 QUEREMOS LEERTE</span>
+  <h1 style="font-size:84px">¿Pesa más el título <span class="y">o el CV?</span></h1>
+  <div class="list" style="margin-top:50px">
+    <div class="li"><em>💬</em>Comentá TÍTULO o CV y defendé tu postura</div>
+    <div class="li"><em>🏷️</em>Etiquetá al colega que tiene que actualizar el suyo</div>
+    <div class="li"><em>💾</em>Guardalo para tu próxima postulación</div>
+    <div class="li"><em>👉</em>Seguí a @recursos.sst</div>
+  </div>
+</section>
+</body></html>
