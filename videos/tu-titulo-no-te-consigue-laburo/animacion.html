@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Tu CV de Seguridad e Higiene</title>
+<style>
+  @font-face { font-family: "InterX"; src: url("file:///usr/share/fonts/opentype/inter/InterDisplay-Black.otf"); font-weight: 900; }
+  @font-face { font-family: "InterX"; src: url("file:///usr/share/fonts/opentype/inter/InterDisplay-Bold.otf"); font-weight: 700; }
+  @font-face { font-family: "InterX"; src: url("file:///usr/share/fonts/opentype/inter/InterDisplay-Medium.otf"); font-weight: 500; }
+  html, body { margin: 0; background: #0E1A2B; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script>
+// ======================================================================
+//  "Tu título no te consigue laburo. Tu CV, sí." — Recursos SST
+//  Animación 9:16 renderizada cuadro a cuadro: render(t) es determinista.
+// ======================================================================
+const W = 1080, H = 1920, DURATION = 42;
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+
+const C = {
+  bg: '#0E1A2B', bg2: '#13243B', navy: '#1B3354',
+  yellow: '#FFC400', orange: '#FF6B1A', red: '#E53935',
+  green: '#22C55E', white: '#FFFFFF', ink: '#0E1A2B',
+  skin: '#F2C29B', gray: '#8DA2BF', steel: '#5B6F8C',
+};
+const F = (w, s) => `${w} ${s}px InterX, "Noto Color Emoji", sans-serif`;
+
+// ---------- utilidades ----------
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const easeOut = k => 1 - Math.pow(1 - k, 3);
+const easeIn = k => k * k * k;
+const easeInOut = k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+const backOut = k => { const c1 = 1.9, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
+const elastic = k => k === 0 ? 0 : k === 1 ? 1 : Math.pow(2, -10 * k) * Math.sin((k * 10 - .75) * (2 * Math.PI / 3)) + 1;
+
+function rr(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+function text(str, x, y, { size = 60, weight = 900, color = C.white, align = 'center', base = 'middle', alpha = 1, stroke = null, sw = 0, shadow = false } = {}) {
+  ctx.save();
+  ctx.globalAlpha *= alpha;
+  ctx.font = F(weight, size); ctx.textAlign = align; ctx.textBaseline = base;
+  if (shadow) { ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 24; ctx.shadowOffsetY = 8; }
+  if (stroke) { ctx.lineJoin = 'round'; ctx.strokeStyle = stroke; ctx.lineWidth = sw; ctx.strokeText(str, x, y); }
+  ctx.fillStyle = color; ctx.fillText(str, x, y);
+  ctx.restore();
+}
+// texto multicolor en una línea: parts = [[str, color], ...]
+function richLine(parts, cx, y, size, weight = 900, alpha = 1) {
+  ctx.save(); ctx.font = F(weight, size);
+  const total = parts.reduce((s, p) => s + ctx.measureText(p[0]).width, 0);
+  let x = cx - total / 2;
+  ctx.globalAlpha *= alpha; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+  for (const [s, col] of parts) { ctx.fillStyle = col; ctx.fillText(s, x, y); x += ctx.measureText(s).width; }
+  ctx.restore();
+}
+function popIn(t, start, dur = .45) { return backOut(prog(t, start, start + dur)); }
+function withT(x, y, s, rot, fn, alpha = 1) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot || 0); ctx.scale(s, s); ctx.globalAlpha *= alpha; fn(); ctx.restore();
+}
+
+// ---------- fondos ----------
+function bgGradient(c1, c2) {
+  const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, c1); g.addColorStop(1, c2);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+}
+function hazardStripe(y, h, offset, alpha = 1) {
+  ctx.save(); ctx.globalAlpha *= alpha;
+  ctx.beginPath(); ctx.rect(0, y, W, h); ctx.clip();
+  ctx.fillStyle = C.yellow; ctx.fillRect(0, y, W, h);
+  ctx.fillStyle = C.ink;
+  for (let x = -200 + (offset % 120); x < W + 200; x += 120) {
+    ctx.beginPath(); ctx.moveTo(x, y + h); ctx.lineTo(x + 60, y + h); ctx.lineTo(x + 60 + h, y); ctx.lineTo(x + h, y); ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
+}
+function dotsGrid(t, alpha = .08) {
+  ctx.save(); ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+  const off = (t * 20) % 60;
+  for (let y = -60 + off; y < H; y += 60) for (let x = 30; x < W; x += 60) { ctx.beginPath(); ctx.arc(x, y, 3, 0, 7); ctx.fill(); }
+  ctx.restore();
+}
+function burst(cx, cy, r1, r2, n, rot, color, alpha = 1) {
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.fillStyle = color; ctx.beginPath();
+  for (let i = 0; i < n * 2; i++) {
+    const a = rot + i * Math.PI / n, r = i % 2 ? r1 : r2;
+    ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+  }
+  ctx.closePath(); ctx.fill(); ctx.restore();
+}
+
+// ---------- personaje: trabajador ----------
+// (x,y) = pies. phase = fase de caminata. mood: 'ok' | 'shock' | 'relief' | 'hurt'
+function worker(x, y, s, { phase = 0, walking = false, mood = 'ok', armsUp = 0, face = 1, bandage = false } = {}) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s * face, s);
+  const sw = walking ? Math.sin(phase) : 0;
+  const bob = walking ? Math.abs(Math.sin(phase)) * 6 : 0;
+  ctx.translate(0, -bob);
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  // piernas
+  const leg = (ang, col) => { ctx.save(); ctx.translate(0, -150); ctx.rotate(ang);
+    ctx.strokeStyle = col; ctx.lineWidth = 34; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 120); ctx.stroke();
+    ctx.fillStyle = '#3B2A1E'; rr(-20, 112, 52, 26, 10); ctx.fill(); ctx.restore(); };
+  leg(-sw * .45, '#24476F'); leg(sw * .45, '#2C5585');
+  // brazo trasero
+  const arm = (ang, col) => { ctx.save(); ctx.translate(0, -300); ctx.rotate(ang);
+    ctx.strokeStyle = col; ctx.lineWidth = 28; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 120); ctx.stroke();
+    ctx.fillStyle = C.skin; ctx.beginPath(); ctx.arc(0, 128, 16, 0, 7); ctx.fill(); ctx.restore(); };
+  const up = armsUp * 2.6;
+  arm(sw * .5 + up, '#D9561A');
+  // torso (chaleco)
+  ctx.fillStyle = C.orange; rr(-48, -325, 96, 190, 30); ctx.fill();
+  ctx.fillStyle = '#E8EEF5'; ctx.fillRect(-48, -255, 96, 14); ctx.fillRect(-48, -205, 96, 14);
+  ctx.fillStyle = '#2C5585'; rr(-48, -160, 96, 22, 8); ctx.fill();
+  // brazo delantero
+  arm(-sw * .5 - up, C.orange);
+  // cabeza
+  ctx.fillStyle = C.skin; ctx.beginPath(); ctx.arc(0, -380, 52, 0, 7); ctx.fill();
+  // ojos y boca
+  ctx.fillStyle = C.ink;
+  if (mood === 'shock') {
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(12, -385, 13, 0, 7); ctx.arc(38, -385, 13, 0, 7); ctx.fill();
+    ctx.fillStyle = C.ink; ctx.beginPath(); ctx.arc(14, -385, 6, 0, 7); ctx.arc(40, -385, 6, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(26, -352, 10, 13, 0, 0, 7); ctx.fill();
+  } else if (mood === 'hurt') {
+    ctx.lineWidth = 5; ctx.strokeStyle = C.ink;
+    ctx.beginPath(); ctx.moveTo(6, -392); ctx.lineTo(20, -382); ctx.moveTo(6, -380); ctx.lineTo(20, -390); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(32, -392); ctx.lineTo(46, -382); ctx.moveTo(32, -380); ctx.lineTo(46, -390); ctx.stroke();
+    ctx.beginPath(); ctx.arc(26, -345, 12, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke();
+  } else {
+    ctx.beginPath(); ctx.arc(16, -385, 6, 0, 7); ctx.arc(40, -385, 6, 0, 7); ctx.fill();
+    ctx.lineWidth = 5; ctx.strokeStyle = C.ink; ctx.beginPath();
+    if (mood === 'relief') ctx.arc(28, -362, 13, .15 * Math.PI, .85 * Math.PI);
+    else ctx.arc(28, -365, 12, .2 * Math.PI, .8 * Math.PI);
+    ctx.stroke();
+  }
+  if (mood === 'relief') { // gota de sudor
+    ctx.fillStyle = '#7CC8FF'; ctx.beginPath(); ctx.moveTo(-30, -430); ctx.quadraticCurveTo(-46, -400, -30, -395); ctx.quadraticCurveTo(-14, -400, -30, -430); ctx.fill();
+  }
+  if (bandage) { ctx.save(); ctx.translate(-14, -362); ctx.rotate(-.5); ctx.fillStyle = '#F5D0A8'; rr(-34, -10, 68, 22, 8); ctx.fill();
+    ctx.fillStyle = '#E0B48A'; ctx.fillRect(-8, -10, 16, 22); ctx.restore(); }
+  // casco
+  ctx.fillStyle = C.yellow;
+  ctx.beginPath(); ctx.arc(0, -400, 58, Math.PI, 0); ctx.closePath(); ctx.fill();
+  rr(-66, -408, 140, 18, 9); ctx.fill();
+  ctx.fillStyle = '#E0A800'; ctx.fillRect(-8, -456, 16, 50);
+  ctx.restore();
+}
+
+// ---------- utilería del CV ----------
+function bubble(x, y, w, h, str, size, alpha, tail = 'left', col = C.white, txtCol = C.ink) {
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.fillStyle = col;
+  rr(x - w / 2, y - h / 2, w, h, 36); ctx.fill();
+  ctx.beginPath();
+  if (tail === 'left') { ctx.moveTo(x - w / 4, y + h / 2 - 2); ctx.lineTo(x - w / 4 - 40, y + h / 2 + 50); ctx.lineTo(x - w / 4 + 40, y + h / 2 - 2); }
+  else { ctx.moveTo(x + w / 4, y + h / 2 - 2); ctx.lineTo(x + w / 4 + 40, y + h / 2 + 50); ctx.lineTo(x + w / 4 - 40, y + h / 2 - 2); }
+  ctx.fill(); ctx.restore();
+  text(str, x, y + 2, { size, color: txtCol, alpha });
+}
+function cvPaper(x, y, s, rot, alpha = 1, mark = null) {
+  withT(x, y, s, rot, () => {
+    ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 30; ctx.shadowOffsetY = 12;
+    ctx.fillStyle = '#FFFFFF'; rr(-150, -200, 300, 400, 14); ctx.fill(); ctx.shadowColor = 'transparent';
+    ctx.fillStyle = C.navy; rr(-150, -200, 300, 70, 14); ctx.fill(); ctx.fillRect(-150, -150, 300, 20);
+    text('CV', -90, -163, { size: 40, color: C.yellow });
+    ctx.fillStyle = '#D5DEEA'; ctx.beginPath(); ctx.arc(85, -95, 34, 0, 7); ctx.fill();
+    ctx.fillStyle = '#C3CEDD';
+    for (let i = 0; i < 9; i++) rr(-120, -80 + i * 30, i % 3 === 0 ? 150 : 230 - (i * 37) % 70, 12, 6), ctx.fill();
+    if (mark === 'x') { ctx.strokeStyle = C.red; ctx.lineWidth = 26; ctx.lineCap = 'round'; ctx.beginPath();
+      ctx.moveTo(-110, -150); ctx.lineTo(110, 150); ctx.moveTo(110, -150); ctx.lineTo(-110, 150); ctx.stroke(); }
+    if (mark === 'ok') { ctx.strokeStyle = C.green; ctx.lineWidth = 12; rr(-160, -210, 320, 420, 20); ctx.stroke(); }
+  }, alpha);
+}
+function check(x, y, s, alpha = 1) {
+  withT(x, y, s, 0, () => { ctx.fillStyle = C.green; ctx.beginPath(); ctx.arc(0, 0, 40, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 10; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(-17, 2); ctx.lineTo(-4, 15); ctx.lineTo(19, -12); ctx.stroke(); }, alpha);
+}
+function cross(x, y, s, alpha = 1) {
+  withT(x, y, s, 0, () => { ctx.fillStyle = C.red; ctx.beginPath(); ctx.arc(0, 0, 40, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 10; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(-14, -14); ctx.lineTo(14, 14); ctx.moveTo(14, -14); ctx.lineTo(-14, 14); ctx.stroke(); }, alpha);
+}
+// golpe de zoom al entrar una palabra
+const punch = (lt, at) => lt < at ? 0 : 1 + .25 * Math.exp(-(lt - at) * 9) * Math.cos((lt - at) * 20);
+function hotBadge(lt, y = 250) {
+  const k = popIn(lt, 0, .35);
+  withT(540, y, k, -.03, () => {
+    ctx.fillStyle = C.red; rr(-300, -48, 600, 96, 48); ctx.fill();
+    text('🔥 OPINIÓN IMPOPULAR', 0, 4, { size: 46, color: C.white });
+  }, clamp(k));
+}
+
+
+// ---------- marca persistente ----------
+function chrome(t) {
+  // barra de progreso
+  ctx.fillStyle = 'rgba(255,255,255,.15)'; ctx.fillRect(0, 0, W, 12);
+  ctx.fillStyle = C.yellow; ctx.fillRect(0, 0, W * (t / DURATION), 12);
+  // marca
+  ctx.save(); ctx.globalAlpha = .9;
+  rr(60, 60, 330, 66, 33); ctx.fillStyle = 'rgba(14,26,43,.75)'; ctx.fill();
+  ctx.fillStyle = C.yellow; ctx.beginPath(); ctx.arc(96, 93, 20, Math.PI, 0); ctx.closePath(); ctx.fill(); ctx.fillRect(70, 90, 52, 7);
+  text('RECURSOS SST', 248, 95, { size: 32, weight: 900, color: C.white });
+  ctx.restore();
+}
+
+// ======================================================================
+//  ESCENAS (42 s, ritmo rápido de reel)
+// ======================================================================
+const SC = [
+  { a: 0,  b: 3.5, f: sHook },
+  { a: 3.5, b: 9, f: sPile },
+  { a: 9,  b: 18, f: sErrors },
+  { a: 18, b: 27, f: sBetter },
+  { a: 27, b: 35, f: sChecklist },
+  { a: 35, b: 42, f: sDebate },
+];
+
+// 1) GANCHO (0–3.5 s)
+function sHook(t, lt) {
+  bgGradient('#0E1A2B', '#1B3354'); dotsGrid(t);
+  burst(540, 860, 330, 460, 14, t * .5, 'rgba(229,57,53,.12)');
+  hotBadge(lt, 300);
+  const words = [['TU TÍTULO', 140, C.white, 620, .25], ['NO TE CONSIGUE', 92, C.white, 770, .65], ['LABURO.', 190, C.yellow, 930, 1.05]];
+  words.forEach(([w, s, c, y, at]) => { if (lt >= at) withT(540, y, punch(lt, at), 0, () => text(w, 0, 0, { size: s, color: c, shadow: true })); });
+  if (lt > 2.0) {
+    const k = popIn(lt, 2.0, .4);
+    withT(540, 1210, k, -.04, () => {
+      ctx.fillStyle = C.yellow; rr(-330, -95, 660, 190, 40); ctx.fill();
+      text('Tu CV, sí. 👇', 0, 6, { size: 92, color: C.ink });
+    }, clamp(k));
+  }
+  const fl = lt > 2.0 && lt < 2.2 ? 1 - (lt - 2.0) / .2 : 0;
+  if (fl) { ctx.fillStyle = `rgba(255,255,255,${fl * .5})`; ctx.fillRect(0, 0, W, H); }
+}
+
+// 2) LA PILA (3.5–9 s)
+function sPile(t, lt) {
+  bgGradient('#13243B', '#0E1A2B'); dotsGrid(t, .05);
+  const tit = [['TÉCNICO', C.yellow, C.ink], ['LICENCIADO', C.orange, C.white], ['INGENIERO', C.red, C.white]];
+  tit.forEach(([s, c, tc], i) => {
+    const at = .15 + i * .5, k = popIn(lt, at, .35);
+    withT(540, 300 + i * 130, k * (lt < 2.6 ? 1 : lerp(1, .8, easeOut(prog(lt, 2.6, 3)))), (i - 1) * .04, () => {
+      ctx.fillStyle = c; rr(-300, -52, 600, 104, 52); ctx.fill(); text(s, 0, 4, { size: 62, color: tc });
+    }, clamp(k));
+  });
+  text('…igual que el resto de los postulantes.', 540, 720, { size: 44, weight: 700, color: C.gray, alpha: prog(lt, 1.7, 2.1) });
+  // pila de CVs que cae sobre el escritorio de RR.HH.
+  ctx.fillStyle = '#25405F'; ctx.fillRect(0, 1450, W, 470); hazardStripe(1450, 28, 0, .9);
+  ctx.fillStyle = '#8A5E36'; rr(380, 1300, 640, 40, 10); ctx.fill(); ctx.fillRect(420, 1340, 24, 110); ctx.fillRect(950, 1340, 24, 110);
+  for (let i = 0; i < 9; i++) {
+    const at = 1.9 + i * .16, k = easeIn(prog(lt, at, at + .3));
+    if (k <= 0) continue;
+    cvPaper(700 + Math.sin(i * 2.3) * 40, lerp(-300, 1230 - i * 22, k), .55, Math.sin(i * 1.7) * .25);
+  }
+  worker(230, 1450, 1.0, { mood: lt > 3.4 ? 'shock' : 'ok' });
+  if (lt > 3.4) {
+    const k = popIn(lt, 3.4, .4);
+    withT(540, 900, k, -.03, () => {
+      ctx.fillStyle = C.white; rr(-440, -95, 880, 190, 40); ctx.fill();
+      text('¿Por qué elegirían', 0, -32, { size: 62, color: C.ink });
+      text('el TUYO? 🤔', 0, 42, { size: 70, color: C.red });
+    }, clamp(k));
+  }
+}
+
+// 3) ERRORES (9–18 s)
+function sErrors(t, lt) {
+  bgGradient('#1B0F12', '#0E1A2B');
+  hazardStripe(200, 36, lt * 140, .9);
+  text('ERRORES QUE TE', 540, 320, { size: 70, color: C.white, alpha: prog(lt, 0, .3) });
+  text('DEJAN AFUERA ❌', 540, 405, { size: 78, color: C.red, alpha: prog(lt, .1, .4) });
+  const errs = [
+    ['📄', 'CV de 4 páginas', 'nadie llega a la 2'],
+    ['🙄', '“Proactivo y responsable”', 'lo dicen todos'],
+    ['📧', 'elmasfacha_87@…', 'sí, pasa'],
+    ['🤳', 'Foto recortada del asado', 'en serio, no'],
+    ['📋', 'Tareas, no RESULTADOS', 'el error más común'],
+  ];
+  errs.forEach(([ic, a, b], i) => {
+    const d = .6 + i * 1.35, k = easeOut(prog(lt, d, d + .3));
+    if (k <= 0) return;
+    const y = 500 + i * 205, last = i === 4;
+    ctx.save(); ctx.globalAlpha = k; ctx.translate((1 - k) * (i % 2 ? 300 : -300), 0);
+    ctx.fillStyle = last ? C.red : C.white; rr(80, y, 920, 180, 34); ctx.fill();
+    text(ic, 165, y + 92, { size: 64 });
+    text(a, 240, y + 70, { size: 48, color: last ? C.white : C.ink, align: 'left' });
+    text(b, 240, y + 130, { size: 34, weight: 500, color: last ? '#FFD6D4' : C.steel, align: 'left' });
+    ctx.restore();
+    if (!last) cross(935, y + 90, popIn(lt, d + .3, .3), clamp(popIn(lt, d + .3, .3)));
+  });
+}
+
+// 4) ASÍ NO / ASÍ SÍ (18–27 s)
+function sBetter(t, lt) {
+  bgGradient('#0E1A2B', '#13243B'); dotsGrid(t, .05);
+  const kT = popIn(lt, .05, .4);
+  withT(540, 300, kT, 0, () => { ctx.fillStyle = C.yellow; rr(-420, -66, 840, 132, 66); ctx.fill();
+    text('NO CUENTES. MOSTRÁ.', 0, 4, { size: 62, color: C.ink }); }, clamp(kT));
+  const pairs = [
+    ['“Realicé capacitaciones.”', ['Capacité a 120 operarios', 'en trabajo en altura.']],
+    ['“Hice inspecciones.”', ['Armé un plan de inspecciones', 'semanales en 3 plantas.']],
+  ];
+  pairs.forEach(([bad, good], i) => {
+    const y0 = 440 + i * 470, d = .5 + i * 3.2;
+    const kb = easeOut(prog(lt, d, d + .35));
+    if (kb > 0) {
+      ctx.save(); ctx.globalAlpha = kb;
+      ctx.fillStyle = 'rgba(229,57,53,.16)'; rr(80, y0, 920, 140, 30); ctx.fill();
+      ctx.strokeStyle = C.red; ctx.lineWidth = 5; rr(80, y0, 920, 140, 30); ctx.stroke();
+      text(bad, 580, y0 + 72, { size: 50, color: C.white });
+      ctx.restore();
+      cross(160, y0 + 70, kb, kb);
+      const ks = easeOut(prog(lt, d + .8, d + 1.1));
+      if (ks > 0) { ctx.save(); ctx.strokeStyle = C.red; ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(250, y0 + 72); ctx.lineTo(250 + 660 * ks, y0 + 72); ctx.stroke(); ctx.restore(); }
+    }
+    const kg = easeOut(prog(lt, d + 1.2, d + 1.6));
+    if (kg > 0) {
+      ctx.save(); ctx.globalAlpha = kg; ctx.translate(0, (1 - kg) * 60);
+      ctx.fillStyle = C.green; rr(80, y0 + 165, 920, 220, 30); ctx.fill();
+      text(good[0], 580, y0 + 240, { size: 50, color: C.ink });
+      text(good[1], 580, y0 + 310, { size: 50, color: C.ink });
+      ctx.restore();
+      check(160, y0 + 275, kg, kg);
+    }
+  });
+  text('(ejemplos)', 540, 1420, { size: 30, weight: 500, color: C.gray, alpha: prog(lt, 2, 2.4) });
+  const k = popIn(lt, 7.3, .4);
+  withT(540, 1530, k, -.02, () => {
+    ctx.fillStyle = C.white; rr(-440, -70, 880, 140, 34); ctx.fill();
+    richLine([['Los números ', C.ink], ['venden', C.green], ['. Los adjetivos, ', C.ink], ['no', C.red], ['.', C.ink]], 0, 4, 46);
+  }, clamp(k));
+}
+
+// 5) CHECKLIST (27–35 s)
+function sChecklist(t, lt) {
+  bgGradient('#0E1A2B', '#13243B');
+  hazardStripe(200, 36, lt * 120, .9);
+  text('TU CV DE SyH', 540, 330, { size: 76, color: C.yellow, alpha: prog(lt, 0, .3) });
+  text('tiene que tener:', 540, 420, { size: 50, weight: 700, alpha: prog(lt, .15, .45) });
+  const items = [
+    ['1 hoja', '2 como máximo'],
+    ['Perfil de 3 líneas', 'qué problemas resolvés'],
+    ['Logros con números', 'no lista de tareas'],
+    ['Matrícula y cursos', 'vigentes y a la vista'],
+    ['Adaptado a CADA aviso', 'nada de copiar y pegar'],
+  ];
+  items.forEach(([a, b], i) => {
+    const d = .5 + i * 1.1, k = easeOut(prog(lt, d, d + .35));
+    if (k <= 0) return;
+    const y = 500 + i * 195;
+    ctx.save(); ctx.globalAlpha = k; ctx.translate((1 - k) * 200, 0);
+    ctx.fillStyle = C.white; rr(80, y, 920, 170, 34); ctx.fill();
+    ctx.fillStyle = C.navy; ctx.beginPath(); ctx.arc(170, y + 85, 52, 0, 7); ctx.fill();
+    text(String(i + 1), 170, y + 89, { size: 58, color: C.yellow });
+    text(a, 255, y + 64, { size: 50, color: C.ink, align: 'left' });
+    text(b, 255, y + 124, { size: 36, weight: 500, color: C.steel, align: 'left' });
+    check(930, y + 85, popIn(lt, d + .35, .3), clamp(popIn(lt, d + .35, .3)));
+    ctx.restore();
+  });
+}
+
+// 6) DEBATE + CTA (35–42 s)
+function sDebate(t, lt) {
+  bgGradient('#1B3354', '#0E1A2B');
+  text('Y ahora, la polémica 🔥', 540, 290, { size: 56, weight: 700, alpha: prog(lt, 0, .3) });
+  text('¿QUÉ PESA MÁS?', 540, 400, { size: 90, color: C.white, alpha: prog(lt, .2, .5) });
+  const kl = easeOut(prog(lt, .5, .9)), kr = easeOut(prog(lt, .7, 1.1));
+  ctx.save(); ctx.globalAlpha = kl; ctx.translate(-(1 - kl) * 500, 0);
+  ctx.fillStyle = C.yellow; rr(70, 500, 450, 360, 40); ctx.fill();
+  text('🎓', 295, 620, { size: 110 }); text('TÍTULO', 295, 780, { size: 70, color: C.ink });
+  ctx.restore();
+  ctx.save(); ctx.globalAlpha = kr; ctx.translate((1 - kr) * 500, 0);
+  ctx.fillStyle = C.orange; rr(560, 500, 450, 360, 40); ctx.fill();
+  text('🦺', 785, 620, { size: 110 }); text('EXPERIENCIA', 785, 780, { size: 50, color: C.white });
+  ctx.restore();
+  const kv = popIn(lt, 1.1, .4);
+  withT(540, 680, kv * (1 + Math.sin(lt * 8) * .04), 0, () => { burst(0, 0, 70, 110, 10, lt, C.red); text('VS', 0, 4, { size: 64, color: C.white }); }, clamp(kv));
+  text('Comentá 🎓 o 🦺 y armamos debate 👇', 540, 950, { size: 48, weight: 900, color: C.yellow, alpha: prog(lt, 1.6, 2.0) });
+  const k2 = popIn(lt, 2.6, .45), pulse = 1 + Math.sin(lt * 6) * .035 * clamp(lt - 3.1);
+  withT(540, 1110, k2 * pulse, 0, () => {
+    ctx.fillStyle = C.yellow; rr(-400, -80, 800, 160, 80); ctx.fill();
+    text('SEGUÍ a @recursos.sst', 0, 4, { size: 58, color: C.ink });
+  }, clamp(k2));
+  text('💾 Guardalo antes de mandar tu próximo CV', 540, 1280, { size: 42, weight: 700, alpha: prog(lt, 3.4, 3.8) });
+  text('📤 Mandáselo al colega con el CV de 2009', 540, 1360, { size: 42, weight: 700, alpha: prog(lt, 4.0, 4.4) });
+}
+
+// ---------- transición entre escenas ----------
+function render(t) {
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1;
+  ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
+  const i = SC.findIndex(s => t >= s.a && t < s.b);
+  const s = SC[i < 0 ? SC.length - 1 : i];
+  s.f(t, t - s.a);
+  // barrido amarillo de transición (0.25 s de cada lado del corte)
+  for (const sc of SC.slice(1)) {
+    const d = t - sc.a;
+    if (d > -.22 && d < .22) {
+      const k = (d + .22) / .44; // 0 → 1
+      const x = lerp(-W * 1.3, W * 1.3, easeInOut(k));
+      ctx.save(); ctx.fillStyle = C.yellow; ctx.beginPath();
+      ctx.moveTo(x - 300, 0); ctx.lineTo(x + W, 0); ctx.lineTo(x + W - 300, H); ctx.lineTo(x - 600, H); ctx.closePath(); ctx.fill(); ctx.restore();
+    }
+  }
+  chrome(t);
+}
+window.render = render;
+window.DURATION = DURATION;
+window.ready = document.fonts.load(F(900, 40)).then(() => document.fonts.load(F(700, 40))).then(() => document.fonts.load(F(500, 40))).then(() => document.fonts.ready);
+</script>
+</body>
+</html>
