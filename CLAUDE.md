@@ -94,6 +94,7 @@ Plantilla en `carruseles/historia-de-marca/`:
 | 2026-11-02 21:52 | Historia de marca: "Nadie sale de casa pensando que no vuelve" — carrusel 8 placas | IG, FB ✅ | [IG](https://www.instagram.com/p/DfQo9giCkgy/) · [FB](https://facebook.com/122112359901508879/posts/122112518493508879) |
 | 2026-11-03 11:05 | El uso seguro de las herramientas (Dec. 351/79 Cap. 15, Ley 19.587) — video animado propio | IG, FB, TT, YT ✅ | [IG](https://www.instagram.com/reel/DfSDt9klHnm/) · [FB](https://facebook.com/reel/28826604753687001) · [TT](https://www.tiktok.com/@recursos.sst/video/7703946286814317842) · [YT](https://www.youtube.com/shorts/VMGcXLdRGUA) |
 | 2026-11-03 11:10 | Uso seguro de herramientas — carrusel 8 placas (Dec. 351/79 Cap. 15) | IG, FB ✅ · TikTok ✅ 15:40 (falló con PNG, re-publicado en JPG) | [IG](https://www.instagram.com/p/DfSEPSTDVv_/) · [FB](https://facebook.com/122112359901508879/posts/122112705819508879) · [TT](https://www.tiktok.com/@recursos.sst/video/7704017064037469448) |
+| 2026-11-03 22:01 | CV en Seguridad e Higiene — carrusel polémico 9 placas ("Tu título no te consigue laburo. Tu CV, sí.") | IG, FB, TT ✅ | [IG](https://www.instagram.com/p/DfTPDPwiK22/) · [FB](https://facebook.com/122112359901508879/posts/122112853971508879) · [TT](https://www.tiktok.com/@recursos.sst/video/7704115717309861140) |
 
 ## Ideas de próximos temas (serie de conceptos básicos)
 Acto inseguro vs condición insegura · Peligro vs riesgo · Pirámide de Bird en detalle · EPP: cuándo es la última barrera ·
@@ -120,3 +121,8 @@ Trabajo en altura (verificar norma vigente antes de citarla) · Riesgo eléctric
   Metricool y que Nicolás comparta a los grupos con "Compartir → Compartir en un grupo", con variantes de texto para no repetir.
 - TikTok modo foto: solo acepta JPG/JPEG/WEBP ("The 'image/png' type is not allowed"). IG y FB aceptan PNG.
 - Coordinar con la sesión de videos: el mismo día salieron video y carrusel del mismo tema; conviene alternar temas o espaciar horarios.
+- Formato "viral/polémico" para carruseles: tag 🔥 OPINIÓN IMPOPULAR en portada, placa de identificación (A vs B), autodiagnóstico
+  ("¿cuántos tiene tu CV?"), antes/después, una frase que divida (placa roja), checklist guardable, cierre empático y CTA binario
+  ("comentá TÍTULO o CV") + etiquetar a un colega. Plantilla: `carruseles/cv-seguridad-e-higiene/` (clases `.vs/.card.bad/.good`).
+- Otra vez coincidieron video y carrusel del mismo tema a la misma hora (22:01, CV). Si Nicolás pide el mismo tema a las dos sesiones,
+  separar al menos 3–4 h entre video y carrusel, o preguntar.
