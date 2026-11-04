@@ -1,0 +1,15 @@
+{"title": "ART y SRT: en qué influyen",
+ "badge": "⚖️ ART vs SRT",
+ "hook": [["¿ART y SRT", 130, "white"], ["son lo", 110, "white"], ["MISMO?", 160, "yellow"]],
+ "hookBox": "NO. Mirá 👇",
+ "what": {"title": "¿QUIÉN ES QUIÉN?", "vs": [
+    {"name": "ART", "color": "orange", "lines": ["Aseguradora de", "Riesgos del Trabajo", "", "Privada", "La contrata", "tu empleador", "", "Cubre y previene"]},
+    {"name": "SRT", "color": "navy", "lines": ["Superintendencia", "de Riesgos del Trabajo", "", "Del Estado", "Controla a las ART", "y a los empleadores", "", "Dicta resoluciones"]}],
+   "foot": "Ley 24.557 de Riesgos del Trabajo"},
+ "keys": {"title": "SI TE ACCIDENTÁS, LA ART:", "items": [
+    ["🏥", "Te atiende", "prestaciones médicas completas"],
+    ["💵", "Te paga", "mientras no podés trabajar"],
+    ["🦺", "Previene", "asesora y visita tu empresa"]],
+   "foot": "También cubre enfermedades profesionales."},
+ "end": [["Todo empleador", 100, "white"], ["tiene que tener", 100, "white"], ["ART.", 170, "yellow"]],
+ "q": "¿Sabés cuál es tu ART? Comentá 👇"}

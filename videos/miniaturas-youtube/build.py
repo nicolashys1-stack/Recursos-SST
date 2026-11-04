@@ -52,6 +52,12 @@ ITEMS = [
      "¿Cuál ves en tu laburo?", "Comentá"),
     ("06-descuido", "Investigación", "¿“Fue un <y>descuido</y>”?", "Entonces no investigaste el accidente",
      "¿Cómo investigan en tu empresa?", "Contame en comentarios"),
+    ("07-normas-iso", "Normas ISO", "¿La ISO es puro <y>papelerío</y>?", "ISO 45001: gestión de la seguridad y salud",
+     "¿Tu empresa está certificada?", "Comentá SÍ o NO"),
+    ("08-normas-iram", "Normas IRAM", "¿Por qué el matafuego es <y>rojo</y>?", "IRAM 10005 · 3517 · 2507",
+     "¿Cuál IRAM usás más?", "Comentá"),
+    ("09-art-y-srt", "Riesgos del trabajo", "¿ART y SRT son lo <y>mismo</y>?", "Quién te cubre y quién controla · Ley 24.557",
+     "¿Sabés cuál es tu ART?", "Comentá"),
 ]
 
 html = [HEAD]

@@ -1,0 +1,18 @@
+{"title": "La importancia de la norma ISO",
+ "badge": "🌎 NORMAS ISO",
+ "hook": [["“LA ISO ES", 120, "white"], ["PURO", 150, "white"], ["PAPELERÍO”", 150, "yellow"]],
+ "hookBox": "¿Seguro? 👇",
+ "what": {"title": "¿QUÉ ES?", "name": "ISO 45001", "lines": [
+    [["Norma ", "ink"], ["internacional", "orange"], [" para", "ink"]],
+    [["gestionar la ", "ink"], ["SEGURIDAD", "red"]],
+    [["y la ", "ink"], ["SALUD", "red"], [" en el trabajo.", "ink"]],
+    [["Voluntaria y certificable.", "steel"]]],
+   "src": "ISO 45001:2018 · reemplazó a OHSAS 18001",
+   "foot": "No es un papel: es un SISTEMA."},
+ "keys": {"title": "¿POR QUÉ IMPORTA?", "items": [
+    ["🔄", "Ciclo PHVA", "planificar, hacer, verificar, actuar"],
+    ["👷", "Participación", "los trabajadores participan"],
+    ["🏆", "Te abre puertas", "clientes y licitaciones la piden"]],
+   "foot": "Mejora continua: no se hace una vez y listo."},
+ "end": [["No reemplaza", 90, "white"], ["la LEY:", 140, "yellow"], ["la ORDENA.", 130, "white"]],
+ "q": "¿Tu empresa está certificada? SÍ o NO 👇"}

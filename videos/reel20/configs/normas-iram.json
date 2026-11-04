@@ -1,0 +1,18 @@
+{"title": "Normas IRAM en Seguridad e Higiene",
+ "badge": "🇦🇷 NORMAS IRAM",
+ "hook": [["¿Por qué el", 100, "white"], ["MATAFUEGO", 140, "red"], ["es ROJO?", 140, "yellow"]],
+ "hookBox": "Por una IRAM 👇",
+ "what": {"title": "¿QUÉ ES IRAM?", "name": "IRAM", "nameSize": 150, "lines": [
+    [["Instituto ", "ink"], ["Argentino", "orange"], [" de", "ink"]],
+    [["NORMALIZACIÓN", "red"], [" y", "ink"]],
+    [["CERTIFICACIÓN", "red"], [".", "ink"]],
+    [["Las normas del país.", "steel"]]],
+   "src": "Representa a la Argentina ante ISO",
+   "foot": "Y en SyH las usás todos los días."},
+ "keys": {"title": "LAS QUE MÁS VAS A USAR", "items": [
+    ["🎨", "IRAM 10005", "colores y señales de seguridad"],
+    ["🧯", "IRAM 3517", "matafuegos: dotación y control"],
+    ["🟦", "IRAM 2507", "identificación de cañerías"]],
+   "foot": "El Dec. 351/79 remite a normas IRAM en varios temas."},
+ "end": [["La LEY dice", 110, "white"], ["QUÉ.", 160, "yellow"], ["La IRAM, CÓMO.", 110, "white"]],
+ "q": "¿Cuál IRAM usás más en tu laburo? 👇"}

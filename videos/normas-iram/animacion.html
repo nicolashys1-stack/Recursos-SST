@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Normas IRAM en Seguridad e Higiene</title>
+<style>
+  @font-face { font-family: "InterX"; src: url("file:///usr/share/fonts/opentype/inter/InterDisplay-Black.otf"); font-weight: 900; }
+  @font-face { font-family: "InterX"; src: url("file:///usr/share/fonts/opentype/inter/InterDisplay-Bold.otf"); font-weight: 700; }
+  @font-face { font-family: "InterX"; src: url("file:///usr/share/fonts/opentype/inter/InterDisplay-Medium.otf"); font-weight: 500; }
+  html, body { margin: 0; background: #0E1A2B; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script>
+// ======================================================================
+//  "Normas IRAM en Seguridad e Higiene" — Recursos SST (reel 20 s)
+//  Animación 9:16 renderizada cuadro a cuadro: render(t) es determinista.
+// ======================================================================
+const W = 1080, H = 1920, DURATION = 20;
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+
+const C = {
+  bg: '#0E1A2B', bg2: '#13243B', navy: '#1B3354',
+  yellow: '#FFC400', orange: '#FF6B1A', red: '#E53935',
+  green: '#22C55E', white: '#FFFFFF', ink: '#0E1A2B',
+  skin: '#F2C29B', gray: '#8DA2BF', steel: '#5B6F8C',
+};
+const F = (w, s) => `${w} ${s}px InterX, "Noto Color Emoji", sans-serif`;
+
+// ---------- utilidades ----------
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const easeOut = k => 1 - Math.pow(1 - k, 3);
+const easeIn = k => k * k * k;
+const easeInOut = k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+const backOut = k => { const c1 = 1.9, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
+const elastic = k => k === 0 ? 0 : k === 1 ? 1 : Math.pow(2, -10 * k) * Math.sin((k * 10 - .75) * (2 * Math.PI / 3)) + 1;
+
+function rr(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+function text(str, x, y, { size = 60, weight = 900, color = C.white, align = 'center', base = 'middle', alpha = 1, stroke = null, sw = 0, shadow = false } = {}) {
+  ctx.save();
+  ctx.globalAlpha *= alpha;
+  ctx.font = F(weight, size); ctx.textAlign = align; ctx.textBaseline = base;
+  if (shadow) { ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 24; ctx.shadowOffsetY = 8; }
+  if (stroke) { ctx.lineJoin = 'round'; ctx.strokeStyle = stroke; ctx.lineWidth = sw; ctx.strokeText(str, x, y); }
+  ctx.fillStyle = color; ctx.fillText(str, x, y);
+  ctx.restore();
+}
+// texto multicolor en una línea: parts = [[str, color], ...]
+function richLine(parts, cx, y, size, weight = 900, alpha = 1) {
+  ctx.save(); ctx.font = F(weight, size);
+  const total = parts.reduce((s, p) => s + ctx.measureText(p[0]).width, 0);
+  let x = cx - total / 2;
+  ctx.globalAlpha *= alpha; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+  for (const [s, col] of parts) { ctx.fillStyle = col; ctx.fillText(s, x, y); x += ctx.measureText(s).width; }
+  ctx.restore();
+}
+function popIn(t, start, dur = .45) { return backOut(prog(t, start, start + dur)); }
+function withT(x, y, s, rot, fn, alpha = 1) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot || 0); ctx.scale(s, s); ctx.globalAlpha *= alpha; fn(); ctx.restore();
+}
+
+// ---------- fondos ----------
+function bgGradient(c1, c2) {
+  const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, c1); g.addColorStop(1, c2);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+}
+function hazardStripe(y, h, offset, alpha = 1) {
+  ctx.save(); ctx.globalAlpha *= alpha;
+  ctx.beginPath(); ctx.rect(0, y, W, h); ctx.clip();
+  ctx.fillStyle = C.yellow; ctx.fillRect(0, y, W, h);
+  ctx.fillStyle = C.ink;
+  for (let x = -200 + (offset % 120); x < W + 200; x += 120) {
+    ctx.beginPath(); ctx.moveTo(x, y + h); ctx.lineTo(x + 60, y + h); ctx.lineTo(x + 60 + h, y); ctx.lineTo(x + h, y); ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
+}
+function dotsGrid(t, alpha = .08) {
+  ctx.save(); ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+  const off = (t * 20) % 60;
+  for (let y = -60 + off; y < H; y += 60) for (let x = 30; x < W; x += 60) { ctx.beginPath(); ctx.arc(x, y, 3, 0, 7); ctx.fill(); }
+  ctx.restore();
+}
+function burst(cx, cy, r1, r2, n, rot, color, alpha = 1) {
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.fillStyle = color; ctx.beginPath();
+  for (let i = 0; i < n * 2; i++) {
+    const a = rot + i * Math.PI / n, r = i % 2 ? r1 : r2;
+    ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+  }
+  ctx.closePath(); ctx.fill(); ctx.restore();
+}
+
+// ---------- personaje: trabajador ----------
+// (x,y) = pies. phase = fase de caminata. mood: 'ok' | 'shock' | 'relief' | 'hurt'
+function worker(x, y, s, { phase = 0, walking = false, mood = 'ok', armsUp = 0, face = 1, bandage = false } = {}) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s * face, s);
+  const sw = walking ? Math.sin(phase) : 0;
+  const bob = walking ? Math.abs(Math.sin(phase)) * 6 : 0;
+  ctx.translate(0, -bob);
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  // piernas
+  const leg = (ang, col) => { ctx.save(); ctx.translate(0, -150); ctx.rotate(ang);
+    ctx.strokeStyle = col; ctx.lineWidth = 34; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 120); ctx.stroke();
+    ctx.fillStyle = '#3B2A1E'; rr(-20, 112, 52, 26, 10); ctx.fill(); ctx.restore(); };
+  leg(-sw * .45, '#24476F'); leg(sw * .45, '#2C5585');
+  // brazo trasero
+  const arm = (ang, col) => { ctx.save(); ctx.translate(0, -300); ctx.rotate(ang);
+    ctx.strokeStyle = col; ctx.lineWidth = 28; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 120); ctx.stroke();
+    ctx.fillStyle = C.skin; ctx.beginPath(); ctx.arc(0, 128, 16, 0, 7); ctx.fill(); ctx.restore(); };
+  const up = armsUp * 2.6;
+  arm(sw * .5 + up, '#D9561A');
+  // torso (chaleco)
+  ctx.fillStyle = C.orange; rr(-48, -325, 96, 190, 30); ctx.fill();
+  ctx.fillStyle = '#E8EEF5'; ctx.fillRect(-48, -255, 96, 14); ctx.fillRect(-48, -205, 96, 14);
+  ctx.fillStyle = '#2C5585'; rr(-48, -160, 96, 22, 8); ctx.fill();
+  // brazo delantero
+  arm(-sw * .5 - up, C.orange);
+  // cabeza
+  ctx.fillStyle = C.skin; ctx.beginPath(); ctx.arc(0, -380, 52, 0, 7); ctx.fill();
+  // ojos y boca
+  ctx.fillStyle = C.ink;
+  if (mood === 'shock') {
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(12, -385, 13, 0, 7); ctx.arc(38, -385, 13, 0, 7); ctx.fill();
+    ctx.fillStyle = C.ink; ctx.beginPath(); ctx.arc(14, -385, 6, 0, 7); ctx.arc(40, -385, 6, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(26, -352, 10, 13, 0, 0, 7); ctx.fill();
+  } else if (mood === 'hurt') {
+    ctx.lineWidth = 5; ctx.strokeStyle = C.ink;
+    ctx.beginPath(); ctx.moveTo(6, -392); ctx.lineTo(20, -382); ctx.moveTo(6, -380); ctx.lineTo(20, -390); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(32, -392); ctx.lineTo(46, -382); ctx.moveTo(32, -380); ctx.lineTo(46, -390); ctx.stroke();
+    ctx.beginPath(); ctx.arc(26, -345, 12, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke();
+  } else {
+    ctx.beginPath(); ctx.arc(16, -385, 6, 0, 7); ctx.arc(40, -385, 6, 0, 7); ctx.fill();
+    ctx.lineWidth = 5; ctx.strokeStyle = C.ink; ctx.beginPath();
+    if (mood === 'relief') ctx.arc(28, -362, 13, .15 * Math.PI, .85 * Math.PI);
+    else ctx.arc(28, -365, 12, .2 * Math.PI, .8 * Math.PI);
+    ctx.stroke();
+  }
+  if (mood === 'relief') { // gota de sudor
+    ctx.fillStyle = '#7CC8FF'; ctx.beginPath(); ctx.moveTo(-30, -430); ctx.quadraticCurveTo(-46, -400, -30, -395); ctx.quadraticCurveTo(-14, -400, -30, -430); ctx.fill();
+  }
+  if (bandage) { ctx.save(); ctx.translate(-14, -362); ctx.rotate(-.5); ctx.fillStyle = '#F5D0A8'; rr(-34, -10, 68, 22, 8); ctx.fill();
+    ctx.fillStyle = '#E0B48A'; ctx.fillRect(-8, -10, 16, 22); ctx.restore(); }
+  // casco
+  ctx.fillStyle = C.yellow;
+  ctx.beginPath(); ctx.arc(0, -400, 58, Math.PI, 0); ctx.closePath(); ctx.fill();
+  rr(-66, -408, 140, 18, 9); ctx.fill();
+  ctx.fillStyle = '#E0A800'; ctx.fillRect(-8, -456, 16, 50);
+  ctx.restore();
+}
+
+// ---------- marca persistente ----------
+function chrome(t) {
+  // barra de progreso
+  ctx.fillStyle = 'rgba(255,255,255,.15)'; ctx.fillRect(0, 0, W, 12);
+  ctx.fillStyle = C.yellow; ctx.fillRect(0, 0, W * (t / DURATION), 12);
+  // marca
+  ctx.save(); ctx.globalAlpha = .9;
+  rr(60, 60, 330, 66, 33); ctx.fillStyle = 'rgba(14,26,43,.75)'; ctx.fill();
+  ctx.fillStyle = C.yellow; ctx.beginPath(); ctx.arc(96, 93, 20, Math.PI, 0); ctx.closePath(); ctx.fill(); ctx.fillRect(70, 90, 52, 7);
+  text('RECURSOS SST', 248, 95, { size: 32, weight: 900, color: C.white });
+  ctx.restore();
+}
+
+const CFG = {"title": "Normas IRAM en Seguridad e Higiene", "badge": "🇦🇷 NORMAS IRAM", "hook": [["¿Por qué el", 100, "white"], ["MATAFUEGO", 140, "red"], ["es ROJO?", 140, "yellow"]], "hookBox": "Por una IRAM 👇", "what": {"title": "¿QUÉ ES IRAM?", "name": "IRAM", "nameSize": 150, "lines": [[["Instituto ", "ink"], ["Argentino", "orange"], [" de", "ink"]], [["NORMALIZACIÓN", "red"], [" y", "ink"]], [["CERTIFICACIÓN", "red"], [".", "ink"]], [["Las normas del país.", "steel"]]], "src": "Representa a la Argentina ante ISO", "foot": "Y en SyH las usás todos los días."}, "keys": {"title": "LAS QUE MÁS VAS A USAR", "items": [["🎨", "IRAM 10005", "colores y señales de seguridad"], ["🧯", "IRAM 3517", "matafuegos: dotación y control"], ["🟦", "IRAM 2507", "identificación de cañerías"]], "foot": "El Dec. 351/79 remite a normas IRAM en varios temas."}, "end": [["La LEY dice", 110, "white"], ["QUÉ.", 160, "yellow"], ["La IRAM, CÓMO.", 110, "white"]], "q": "¿Cuál IRAM usás más en tu laburo? 👇"};
+// ======================================================================
+//  Motor de reels de 20 s (Recursos SST). Se configura con window.CFG.
+//  Escenas: gancho (0–2.6) → qué es (2.6–7.6) → 3 claves (7.6–15) → remate + CTA (15–20)
+// ======================================================================
+const SC = [
+  { a: 0, b: 2.6, f: sHook },
+  { a: 2.6, b: 7.6, f: sWhat },
+  { a: 7.6, b: 15, f: sKeys },
+  { a: 15, b: 20, f: sEnd },
+];
+const punch = (lt, at) => lt < at ? 0 : 1 + .25 * Math.exp(-(lt - at) * 9) * Math.cos((lt - at) * 20);
+const col = c => C[c] || c;
+function check(x, y, s, alpha = 1) {
+  withT(x, y, s, 0, () => { ctx.fillStyle = C.green; ctx.beginPath(); ctx.arc(0, 0, 40, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 10; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(-17, 2); ctx.lineTo(-4, 15); ctx.lineTo(19, -12); ctx.stroke(); }, alpha);
+}
+function badge(lt, str, y = 300, bg = C.red) {
+  const k = popIn(lt, 0, .35);
+  withT(540, y, k, -.03, () => {
+    ctx.font = F(900, 46); const w = ctx.measureText(str).width + 90;
+    ctx.fillStyle = bg; rr(-w / 2, -48, w, 96, 48); ctx.fill();
+    text(str, 0, 4, { size: 46, color: C.white });
+  }, clamp(k));
+}
+
+// 1) GANCHO
+function sHook(t, lt) {
+  bgGradient('#0E1A2B', '#1B3354'); dotsGrid(t);
+  burst(540, 860, 330, 460, 14, t * .5, 'rgba(255,196,0,.12)');
+  badge(lt, CFG.badge);
+  CFG.hook.forEach(([w, s, c], i) => { const at = .2 + i * .35;
+    if (lt >= at) withT(540, 600 + i * 165, punch(lt, at), 0, () => text(w, 0, 0, { size: s, color: col(c), shadow: true })); });
+  const at = .3 + CFG.hook.length * .35;
+  if (lt > at) {
+    const k = popIn(lt, at, .35);
+    withT(540, 600 + CFG.hook.length * 165 + 90, k, -.04, () => {
+      ctx.font = F(900, 80); const w = ctx.measureText(CFG.hookBox).width + 120;
+      ctx.fillStyle = C.yellow; rr(-w / 2, -80, w, 160, 40); ctx.fill();
+      text(CFG.hookBox, 0, 6, { size: 80, color: C.ink });
+    }, clamp(k));
+  }
+}
+
+// 2) QUÉ ES (tarjeta con definición, o dos columnas "vs")
+function sWhat(t, lt) {
+  bgGradient('#0E1A2B', '#13243B'); dotsGrid(t, .06);
+  const W2 = CFG.what;
+  const kT = popIn(lt, .05, .35);
+  withT(540, 300, kT, 0, () => { ctx.font = F(900, 60); const w = ctx.measureText(W2.title).width + 110;
+    ctx.fillStyle = C.yellow; rr(-w / 2, -66, w, 132, 66); ctx.fill(); text(W2.title, 0, 4, { size: 60, color: C.ink }); }, clamp(kT));
+  if (W2.vs) {
+    W2.vs.forEach((c, i) => {
+      const k = easeOut(prog(lt, .4 + i * .5, .8 + i * .5)), x = 70 + i * 480;
+      ctx.save(); ctx.globalAlpha = k; ctx.translate((1 - k) * (i ? 300 : -300), 0);
+      ctx.fillStyle = col(c.color); rr(x, 440, 460, 900, 40); ctx.fill();
+      const tc = col(c.text || 'white');
+      text(c.name, x + 230, 560, { size: 120, color: tc });
+      c.lines.forEach((ln, j) => text(ln, x + 230, 700 + j * 62, { size: 44, weight: j < 2 ? 900 : 700, color: tc }));
+      ctx.restore();
+    });
+    const kv = popIn(lt, 1.4, .35);
+    withT(540, 1250, kv, 0, () => { burst(0, 0, 60, 95, 10, lt, C.white); text('≠', 0, 6, { size: 80, color: C.ink }); }, clamp(kv));
+  } else {
+    const kc = easeOut(prog(lt, .3, .7));
+    ctx.save(); ctx.globalAlpha = kc; ctx.translate(0, (1 - kc) * 80);
+    ctx.fillStyle = C.white; rr(80, 450, 920, 760, 44); ctx.fill();
+    ctx.fillStyle = C.orange; rr(80, 450, 22, 760, 11); ctx.fill();
+    ctx.restore();
+    const kn = popIn(lt, .6, .4);
+    withT(550, 590, kn, 0, () => text(W2.name, 0, 0, { size: W2.nameSize || 110, color: C.orange }), clamp(kn));
+    W2.lines.forEach((ln, i) => {
+      const k = easeOut(prog(lt, 1.1 + i * .35, 1.45 + i * .35));
+      ctx.save(); ctx.translate(0, (1 - k) * 30); richLine(ln.map(([s, c]) => [s, col(c)]), 550, 740 + i * 95, 60, 900, k); ctx.restore();
+    });
+    text(W2.src, 540, 1150, { size: 34, weight: 500, color: C.steel, alpha: prog(lt, 2.6, 3) });
+  }
+  if (W2.foot) text(W2.foot, 540, 1420, { size: 46, weight: 700, color: C.yellow, alpha: prog(lt, 3.2, 3.6) });
+}
+
+// 3) TRES CLAVES
+function sKeys(t, lt) {
+  bgGradient('#0E1A2B', '#16304F');
+  hazardStripe(200, 36, lt * 120, .9);
+  text(CFG.keys.title, 540, 340, { size: 70, color: C.yellow, alpha: prog(lt, 0, .3) });
+  CFG.keys.items.forEach(([ic, a, b], i) => {
+    const d = .5 + i * 1.9, k = easeOut(prog(lt, d, d + .35));
+    if (k <= 0) return;
+    const y = 450 + i * 300;
+    ctx.save(); ctx.globalAlpha = k; ctx.translate((1 - k) * 220, 0);
+    ctx.fillStyle = C.white; rr(80, y, 920, 250, 40); ctx.fill();
+    ctx.fillStyle = C.navy; ctx.beginPath(); ctx.arc(200, y + 125, 80, 0, 7); ctx.fill();
+    text(ic, 200, y + 130, { size: 80 });
+    text(a, 320, y + 95, { size: 56, color: C.ink, align: 'left' });
+    text(b, 320, y + 170, { size: 38, weight: 500, color: C.steel, align: 'left' });
+    ctx.restore();
+    check(930, y + 125, popIn(lt, d + .35, .3), clamp(popIn(lt, d + .35, .3)));
+  });
+  if (CFG.keys.foot) text(CFG.keys.foot, 540, 1420, { size: 36, weight: 700, color: C.gray, alpha: prog(lt, 6.4, 6.8) });
+}
+
+// 4) REMATE + CTA
+function sEnd(t, lt) {
+  bgGradient('#1B3354', '#0E1A2B');
+  burst(540, 600, 340, 500, 16, lt * .3, 'rgba(255,196,0,.10)');
+  CFG.end.forEach(([w, s, c], i) => { const at = .1 + i * .3;
+    if (lt >= at) withT(540, 420 + i * 140, punch(lt, at), 0, () => text(w, 0, 0, { size: s, color: col(c), shadow: true })); });
+  const yq = 420 + CFG.end.length * 140 + 40;
+  const kq = popIn(lt, 1.3, .35);
+  withT(540, yq, kq, -.02, () => {
+    ctx.fillStyle = C.white; rr(-460, -70, 920, 140, 34); ctx.fill();
+    ctx.font = F(900, 46); const qs = Math.min(46, 46 * 840 / ctx.measureText(CFG.q).width);
+    text(CFG.q, 0, 4, { size: qs, color: C.ink });
+  }, clamp(kq));
+  const k2 = popIn(lt, 2.1, .4), pulse = 1 + Math.sin(lt * 6) * .035 * clamp(lt - 2.5);
+  withT(540, yq + 200, k2 * pulse, 0, () => {
+    ctx.fillStyle = C.yellow; rr(-400, -80, 800, 160, 80); ctx.fill();
+    text('SEGUÍ a @recursos.sst', 0, 4, { size: 58, color: C.ink });
+  }, clamp(k2));
+  text('💾 Guardalo · 📤 Compartilo con tu equipo', 540, yq + 360, { size: 42, weight: 700, alpha: prog(lt, 2.8, 3.2) });
+}
+
+// ---------- transición entre escenas ----------
+function render(t) {
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1;
+  ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
+  const i = SC.findIndex(s => t >= s.a && t < s.b);
+  const s = SC[i < 0 ? SC.length - 1 : i];
+  s.f(t, t - s.a);
+  // barrido amarillo de transición (0.25 s de cada lado del corte)
+  for (const sc of SC.slice(1)) {
+    const d = t - sc.a;
+    if (d > -.22 && d < .22) {
+      const k = (d + .22) / .44; // 0 → 1
+      const x = lerp(-W * 1.3, W * 1.3, easeInOut(k));
+      ctx.save(); ctx.fillStyle = C.yellow; ctx.beginPath();
+      ctx.moveTo(x - 300, 0); ctx.lineTo(x + W, 0); ctx.lineTo(x + W - 300, H); ctx.lineTo(x - 600, H); ctx.closePath(); ctx.fill(); ctx.restore();
+    }
+  }
+  chrome(t);
+}
+window.render = render;
+window.DURATION = DURATION;
+window.ready = document.fonts.load(F(900, 40)).then(() => document.fonts.load(F(700, 40))).then(() => document.fonts.load(F(500, 40))).then(() => document.fonts.ready);
+</script>
+</body>
+</html>
